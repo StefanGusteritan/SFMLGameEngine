@@ -2,11 +2,9 @@
 
 int main()
 {
-    Game test(sf::VideoMode(200, 200), "SFML works!", sf::Style::Default);
-    sf::CircleShape shape(100.f);
-    shape.setFillColor(sf::Color::Green);
+    Game test(sf::VideoMode(1920, 1080), "Test", sf::Style::Default);
 
-    test.Run(shape);
+    test.Run();
 
     return 0;
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
@@ -15,6 +16,8 @@ private:
 
     sf::Event event;
 
+    sf::CircleShape shape;
+
     // Functions
 
     // Update the deltaTime
@@ -27,11 +30,11 @@ private:
     void Update();
 
     // Render the frame
-    void Draw(sf::CircleShape s);
+    void Draw();
 
 public:
     // Constructor - Initiates the game window
-    Game(sf::VideoMode windowSize, char *windowTitle, sf::Uint32 windowStyle);
+    Game(sf::VideoMode windowSize, const char *windowTitle, sf::Uint32 windowStyle);
 
     // Deconstructor
     ~Game();
@@ -40,5 +43,5 @@ public:
     float GetDeltaTime();
 
     // Open the game window and run the game
-    void Run(sf::CircleShape s);
+    void Run();
 };
