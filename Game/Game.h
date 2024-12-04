@@ -1,9 +1,8 @@
 #pragma once
-#include <iostream>
-#include <SFML/System.hpp>
-#include <SFML/Window.hpp>
-#include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
+#include "Game/Object.cpp"
+#include "Game/Child.cpp"
+#include "Game/Parent.cpp"
+#include <typeinfo>
 
 class Game
 {
@@ -44,4 +43,30 @@ public:
 
     // Open the game window and run the game
     void Run();
+};
+
+class Scene
+{
+private:
+    // The objects in the scene, if they are active they will be updated every frame
+    std::list<Object> objects;
+
+public:
+    // Constructor
+    Scene();
+
+    // Deconstructor
+    ~Scene();
+
+    // Add object to scene
+    void AddObject(Object *o);
+
+    // Remove object from scene
+    void RemoveObject(Object *o);
+
+    // Updates every active Object
+    void Update();
+
+    // Draw every visble Object
+    void Draw();
 };

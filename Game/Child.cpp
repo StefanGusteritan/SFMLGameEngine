@@ -1,15 +1,49 @@
 #include "Object.h"
 
-Child::Child(bool activeState, bool visibility, Object *p)
+Child::Child(Parent *p)
 {
-    this->active = activeState;
-    this->visible = visibility;
+    this->active = true;
 
     this->parent = p;
+    this->parent->AddChild(this);
 
-    this->localPosition = this->sprite.getPosition();
-    this->localRotation = this->sprite.getRotation();
-    this->localScale = this->sprite.getScale();
+    // Initialize transform based on parent
+    this->position = this->parent->GetPosition();
+    this->rotation = this->parent->GetRotation();
+    this->scale = this->parent->GetScale();
+
+    // Initialize local transform
+    this->localPosition = sf::Vector2f(0, 0);
+    this->localRotation = 0;
+    this->localScale = sf::Vector2f(1, 1);
+
+    std::cout << "Child created: " << this << ", Parent: " << p << std::endl;
+}
+
+Child::Child(bool activeState, Parent *p)
+{
+    this->active = activeState;
+
+    this->parent = p;
+    this->parent->AddChild(this);
+
+    // Initialize transform based on parent
+    this->position = this->parent->GetPosition();
+    this->rotation = this->parent->GetRotation();
+    this->scale = this->parent->GetScale();
+
+    // Initialize local transform
+    this->localPosition = sf::Vector2f(0, 0);
+    this->localRotation = 0;
+    this->localScale = sf::Vector2f(1, 1);
+
+    std::cout << "Child created: " << this << ", Parent: " << p << std::endl;
+}
+
+Child::~Child()
+{
+    std::cout << "Deleting Object" << this << std::endl;
+    this->parent->RemoveChild(this);
 }
 
 bool Child::IsActive()
@@ -19,12 +53,8 @@ bool Child::IsActive()
 
 void Child::Update()
 {
-    this->sprite.setPosition(this->parent->GetPosition() + this->localPosition);
-    this->sprite.setRotation(this->parent->GetRotation() + this->localRotation);
-    this->sprite.setScale(this->parent->GetScale() + this->localScale);
-}
-
-bool Child::IsVisible()
-{
-    return this->parent->IsVisible() && this->visible;
+    this->SetPosition(this->parent->GetPosition() + this->localPosition);
+    this->SetRotation(this->parent->GetRotation() + this->localRotation);
+    sf::Vector2f newScale(this->parent->GetScale().x * this->localScale.x, this->parent->GetScale().y * this->localScale.y);
+    this->SetScale(newScale);
 }

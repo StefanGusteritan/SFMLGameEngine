@@ -3,10 +3,12 @@
 Game::Game(sf::VideoMode windowSize, const char *windowTitle, sf::Uint32 windowStyle)
 {
     this->mainWindow.create(windowSize, windowTitle, windowStyle);
+    std::cout << "Game window created with title: " << windowTitle << std::endl;
 }
 
 Game::~Game()
 {
+    std::cout << "Game object destroyed." << std::endl;
 }
 
 void Game::UpdateDeltaTime()
@@ -30,12 +32,6 @@ void Game::Update()
 {
     this->UpdateDeltaTime();
     this->UpdateEvents();
-
-    // Debug
-    std::cout << "Delta Time: " << this->deltaTime << std::endl
-              << "Frame Rate: " << 1 / this->deltaTime << std::endl
-              << "Window Size: " << this->mainWindow.getSize().x << 'x' << this->mainWindow.getSize().y
-              << "\033[A\033[A\r";
 }
 
 void Game::Draw()
