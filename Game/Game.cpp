@@ -2,13 +2,14 @@
 
 Game::Game(sf::VideoMode windowSize, const char *windowTitle, sf::Uint32 windowStyle)
 {
+    this->changingScene = false;
     this->mainWindow.create(windowSize, windowTitle, windowStyle);
     std::cout << "Game window created with title: " << windowTitle << std::endl;
 }
 
 Game::~Game()
 {
-    std::cout << "Game object destroyed." << std::endl;
+    std::cout << "Game destroyed." << std::endl;
 }
 
 void Game::UpdateDeltaTime()
@@ -32,11 +33,27 @@ void Game::Update()
 {
     this->UpdateDeltaTime();
     this->UpdateEvents();
+
+    if (!this->activeScene)
+    {
+        std::cout << "Failed to update scene objects (Null pointer to scene)" << std::endl;
+        return;
+    }
+
+    this->activeScene->Update();
 }
 
 void Game::Draw()
 {
     this->mainWindow.clear();
+
+    if (!this->activeScene)
+    {
+        std::cout << "Failed to draw scene objects (Null pointer to scene)" << std::endl;
+        return;
+    }
+
+    this->activeScene->Draw(&this->mainWindow);
     this->mainWindow.display();
 }
 
@@ -45,10 +62,56 @@ float Game::GetDeltaTime()
     return this->deltaTime;
 }
 
+Scene *Game::GetActiveScene()
+{
+    if (!this->activeScene)
+    {
+        std::cout << "Failed to get scene (Null pointer)" << std::endl;
+        return NULL;
+    }
+
+    return this->activeScene;
+}
+
+void Game::ChangeScene()
+{
+    if (!nextScene)
+    {
+        std::cout << "Failed to set scene (Null pointer)" << std::endl;
+        return;
+    }
+
+    Scene *previousScene = this->activeScene;
+    this->activeScene = nextScene;
+
+    this->changingScene = false;
+    std::cout << "Active scene is set to " << nextScene << std::endl;
+
+    if (!previousScene)
+        std::cout << "Failed to delete previous scene (Null pointer)" << std::endl;
+    else
+        delete previousScene;
+}
+
+void Game::SetActiveScene(Scene *s)
+{
+    if (!s)
+    {
+        std::cout << "Failed to change scene (Null pointer)" << std::endl;
+        return;
+    }
+
+    this->changingScene = true;
+    this->nextScene = s;
+}
+
 void Game::Run()
 {
     while (this->mainWindow.isOpen())
     {
+        if (changingScene)
+            ChangeScene();
+
         this->Update();
         this->Draw();
     }

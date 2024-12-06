@@ -2,6 +2,12 @@
 
 Child::Child(Parent *p)
 {
+    if (!p)
+    {
+        std::cout << "Failed to create child object (Null pinter to parent)" << std::endl;
+        delete this;
+    }
+
     this->active = true;
 
     this->parent = p;
@@ -22,6 +28,12 @@ Child::Child(Parent *p)
 
 Child::Child(bool activeState, Parent *p)
 {
+    if (!p)
+    {
+        std::cout << "Failed to create child object (Null pinter to parent)" << std::endl;
+        delete this;
+    }
+
     this->active = activeState;
 
     this->parent = p;
@@ -40,10 +52,12 @@ Child::Child(bool activeState, Parent *p)
     std::cout << "Child created: " << this << ", Parent: " << p << std::endl;
 }
 
-Child::~Child()
+void Child::Delete()
 {
-    std::cout << "Deleting Object" << this << std::endl;
-    this->parent->RemoveChild(this);
+    if (this->parent)
+        this->parent->RemoveChild(this);
+    std::cout << "Child Object destroyed" << this << std::endl;
+    delete this;
 }
 
 bool Child::IsActive()

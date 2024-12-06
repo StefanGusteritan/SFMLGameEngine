@@ -41,7 +41,12 @@ Object::Object(bool activeState)
 
 Object::~Object()
 {
+}
+
+void Object::Delete()
+{
     std::cout << "Object destroyed: " << this << std::endl;
+    delete this;
 }
 
 bool Object::IsActive()
@@ -73,16 +78,14 @@ sf::Vector2f Object::GetScale()
     return this->scale;
 }
 
-SpriteObject::SpriteObject()
+SpriteObject::SpriteObject() : Object()
 {
     this->visible = true;
-    this->Object::Object();
 }
 
-SpriteObject::SpriteObject(bool activeState, bool visibility)
+SpriteObject::SpriteObject(bool activeState, bool visibility) : Object(activeState)
 {
     this->visible = visibility;
-    this->Object::Object(activeState);
 }
 
 void SpriteObject::Update()
@@ -92,16 +95,29 @@ void SpriteObject::Update()
     this->sprite.setScale(this->scale);
 }
 
-TextObject::TextObject()
+bool SpriteObject::IsVisible()
 {
-    this->visible = true;
-    this->Object::Object();
+    return this->visible;
 }
 
-TextObject::TextObject(bool activeState, bool visibility)
+void SpriteObject::SetVisible(bool visibility)
 {
     this->visible = visibility;
-    this->Object::Object(activeState);
+}
+
+sf::Sprite SpriteObject::GetSprite()
+{
+    return this->sprite;
+}
+
+TextObject::TextObject() : Object()
+{
+    this->visible = true;
+}
+
+TextObject::TextObject(bool activeState, bool visibility) : Object(activeState)
+{
+    this->visible = visibility;
 }
 
 void TextObject::Update()
@@ -111,16 +127,29 @@ void TextObject::Update()
     this->text.setScale(this->scale);
 }
 
-CircleObject::CircleObject()
+bool TextObject::IsVisible()
 {
-    this->visible = true;
-    this->Object::Object();
+    return this->visible;
 }
 
-CircleObject::CircleObject(bool activeState, bool visibility)
+void TextObject::SetVisible(bool visibility)
 {
     this->visible = visibility;
-    this->Object::Object(activeState);
+}
+
+sf::Text TextObject::GetText()
+{
+    return this->text;
+}
+
+CircleObject::CircleObject() : Object()
+{
+    this->visible = true;
+}
+
+CircleObject::CircleObject(bool activeState, bool visibility) : Object(activeState)
+{
+    this->visible = visibility;
 }
 
 void CircleObject::Update()
@@ -130,16 +159,29 @@ void CircleObject::Update()
     this->circle.setScale(this->scale);
 }
 
-RectangleObject::RectangleObject()
+bool CircleObject::IsVisible()
 {
-    this->visible = true;
-    this->Object::Object();
+    return this->visible;
 }
 
-RectangleObject::RectangleObject(bool activeState, bool visibility)
+void CircleObject::SetVisible(bool visibility)
 {
     this->visible = visibility;
-    this->Object::Object(activeState);
+}
+
+sf::CircleShape CircleObject::GetCircleShape()
+{
+    return this->circle;
+}
+
+RectangleObject::RectangleObject() : Object()
+{
+    this->visible = true;
+}
+
+RectangleObject::RectangleObject(bool activeState, bool visibility) : Object(activeState)
+{
+    this->visible = visibility;
 }
 
 void RectangleObject::Update()
@@ -149,16 +191,29 @@ void RectangleObject::Update()
     this->rectangle.setScale(this->scale);
 }
 
-ConvexObject::ConvexObject()
+bool RectangleObject::IsVisible()
 {
-    this->visible = true;
-    this->Object::Object();
+    return this->visible;
 }
 
-ConvexObject::ConvexObject(bool activeState, bool visibility)
+void RectangleObject::SetVisible(bool visibility)
 {
     this->visible = visibility;
-    this->Object::Object(activeState);
+}
+
+sf::RectangleShape RectangleObject::GetRectangleShape()
+{
+    return this->rectangle;
+}
+
+ConvexObject::ConvexObject() : Object()
+{
+    this->visible = true;
+}
+
+ConvexObject::ConvexObject(bool activeState, bool visibility) : Object(activeState)
+{
+    this->visible = visibility;
 }
 
 void ConvexObject::Update()
@@ -166,4 +221,19 @@ void ConvexObject::Update()
     this->convexShape.setPosition(this->position);
     this->convexShape.setRotation(this->rotation);
     this->convexShape.setScale(this->scale);
+}
+
+bool ConvexObject::IsVisible()
+{
+    return this->visible;
+}
+
+void ConvexObject::SetVisible(bool visibility)
+{
+    this->visible = visibility;
+}
+
+sf::ConvexShape ConvexObject::GetConvexShape()
+{
+    return this->convexShape;
 }

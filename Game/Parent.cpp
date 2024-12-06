@@ -1,13 +1,14 @@
 #include "Object.h"
 
-Parent::~Parent()
+void Parent::Delete()
 {
-    std::cout << "Deleting Object" << this << std::endl;
     while (!this->children.empty())
-        delete this->children.back();
+        this->children.back()->Delete();
+    std::cout << "Parent Object destroyed" << this << std::endl;
+    delete this;
 }
 
-void Parent::AddChild(Child *c)
+void Parent::AddChild(Object *c)
 {
     if (!c)
     {
@@ -19,7 +20,7 @@ void Parent::AddChild(Child *c)
     this->children.push_back(c);
 }
 
-void Parent::RemoveChild(Child *c)
+void Parent::RemoveChild(Object *c)
 {
     if (!c)
     {

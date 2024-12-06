@@ -5,6 +5,7 @@
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include <typeinfo>
 
 class Object
 {
@@ -33,6 +34,8 @@ public:
 
     // Deconstructor
     ~Object();
+    // Actions that happen before the object is deleted (calls the deconstructor)
+    virtual void Delete();
 
     // True if the object is active
     virtual bool IsActive();
@@ -57,16 +60,17 @@ public:
 class Parent : public Object
 {
 private:
-    std::list<Child *> children;
+    std::list<Object *> children;
 
 public:
-    ~Parent();
+    // Actions that happen before the object is deleted (calls the deconstructor)
+    virtual void Delete() override;
 
     // Add a child to its list of children
-    void AddChild(Child *c);
+    void AddChild(Object *c);
 
     // Remove a child from its list of children
-    void RemoveChild(Child *c);
+    void RemoveChild(Object *c);
 };
 
 // Object that is a child of another object its transform, visibility and active State are dependent of its parent's
@@ -85,8 +89,8 @@ public:
     Child(Parent *p);
     Child(bool activeState, Parent *p);
 
-    // Deconstructor
-    ~Child();
+    // Actions that happen before the object is deleted (calls the deconstructor)
+    virtual void Delete() override;
 
     // True if the object and its parent are active
     bool IsActive() override;
@@ -109,6 +113,14 @@ public:
 
     // Update object each frame add changes to the sprite
     virtual void Update() override;
+
+    // True if object is visible
+    bool IsVisible();
+    // Set the visibility of the object
+    void SetVisible(bool visibility);
+
+    // Returns the sprite of the object so it can be drawn
+    sf::Sprite GetSprite();
 };
 
 // Object that has a text
@@ -125,6 +137,14 @@ public:
 
     // Update object each frame add changes to the convex text
     virtual void Update() override;
+
+    // True if object is visible
+    bool IsVisible();
+    // Set the visibility of the object
+    void SetVisible(bool visibility);
+
+    // Returns the sprite of the object so it can be drawn
+    sf::Text GetText();
 };
 
 // Object that has a circle shape
@@ -141,6 +161,14 @@ public:
 
     // Update object each frame add changes to the circle
     virtual void Update() override;
+
+    // True if object is visible
+    bool IsVisible();
+    // Set the visibility of the object
+    void SetVisible(bool visibility);
+
+    // Returns the circle shape of the object so it can be drawn
+    sf::CircleShape GetCircleShape();
 };
 
 // Object that has a rectangle shape
@@ -157,6 +185,14 @@ public:
 
     // Update object each frame add changes to the rectangle
     virtual void Update() override;
+
+    // True if object is visible
+    bool IsVisible();
+    // Set the visibility of the object
+    void SetVisible(bool visibility);
+
+    // Returns the Rectangle Shape of the object so it can be drawn
+    sf::RectangleShape GetRectangleShape();
 };
 
 // Object that has a convex shape
@@ -173,4 +209,13 @@ public:
 
     // Update object each frame add changes to the convex shape
     virtual void Update() override;
+
+    // True if object is visible
+    bool IsVisible();
+
+    // Set the visibility of the object
+    void SetVisible(bool visibility);
+
+    // Returns the convex shape of the object so it can be drawn
+    sf::ConvexShape GetConvexShape();
 };

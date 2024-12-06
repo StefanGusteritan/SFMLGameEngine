@@ -1,55 +1,13 @@
 #pragma once
-#include "Game/Object.cpp"
-#include "Game/Child.cpp"
-#include "Game/Parent.cpp"
-#include <typeinfo>
-
-class Game
-{
-private:
-    // Variables
-    sf::RenderWindow mainWindow;
-
-    sf::Clock dtClock;
-    float deltaTime;
-
-    sf::Event event;
-
-    sf::CircleShape shape;
-
-    // Functions
-
-    // Update the deltaTime
-    void UpdateDeltaTime();
-
-    // Gets and reacts to events
-    void UpdateEvents();
-
-    // Update the frame
-    void Update();
-
-    // Render the frame
-    void Draw();
-
-public:
-    // Constructor - Initiates the game window
-    Game(sf::VideoMode windowSize, const char *windowTitle, sf::Uint32 windowStyle);
-
-    // Deconstructor
-    ~Game();
-
-    // Get the deltaTime
-    float GetDeltaTime();
-
-    // Open the game window and run the game
-    void Run();
-};
+#include "Object.cpp"
+#include "Child.cpp"
+#include "Parent.cpp"
 
 class Scene
 {
 private:
     // The objects in the scene, if they are active they will be updated every frame
-    std::list<Object> objects;
+    std::list<Object *> objects;
 
 public:
     // Constructor
@@ -68,5 +26,60 @@ public:
     void Update();
 
     // Draw every visble Object
+    void Draw(sf::RenderWindow *window);
+};
+
+class Game
+{
+private:
+    // Variables
+    sf::RenderWindow mainWindow;
+
+    Scene *activeScene;
+
+    sf::Clock dtClock;
+    float deltaTime;
+
+    sf::Event event;
+
+    // True if in the process of changing the scene
+    bool changingScene;
+    // The next scene that will be active
+    Scene *nextScene;
+
+    // Functions
+
+    // Update the deltaTime
+    void UpdateDeltaTime();
+
+    // Gets and reacts to events
+    void UpdateEvents();
+
+    // Update the frame
+    void Update();
+
+    // Render the frame
     void Draw();
+
+    // Trigger the change scene process
+    void ChangeScene();
+
+public:
+    // Constructor - Initiates the game window
+    Game(sf::VideoMode windowSize, const char *windowTitle, sf::Uint32 windowStyle);
+
+    // Deconstructor
+    ~Game();
+
+    // Get the deltaTime
+    float GetDeltaTime();
+
+    // Get the active scene
+    Scene *GetActiveScene();
+
+    // Set the active scene
+    void SetActiveScene(Scene *s);
+
+    // Open the game window and run the game
+    void Run();
 };
