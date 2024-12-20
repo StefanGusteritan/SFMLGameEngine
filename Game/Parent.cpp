@@ -16,7 +16,7 @@ void Parent::AddChild(Object *c)
         return;
     }
 
-    std::cout << "Adding child" << c << " to " << this << " children list" << std::endl;
+    std::cout << "Adding child " << c << " to " << this << " children list" << std::endl;
     this->children.push_back(c);
 }
 

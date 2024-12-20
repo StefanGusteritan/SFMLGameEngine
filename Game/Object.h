@@ -1,31 +1,42 @@
 #pragma once
 #include <iostream>
+#include <math.h>
 #include <list>
+#include <typeinfo>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-#include <typeinfo>
 
 class Object
 {
-protected:
+private:
     // Variables
     sf::Vector2f position;
     float rotation;
     sf::Vector2f scale;
     bool active;
 
+protected:
     // Functions
 
     // Changes the position of the Object
     void SetPosition(sf::Vector2f newPosition);
 
+    // Moves the object from it's position twords a direction with a specified speed
+    void Move(sf::Vector2f direction, float speed);
+
     // Changes the rotation of the Object
     void SetRotation(float newRotation);
 
+    // Rotates the object form it's rotation twords an angle with a specified speed
+    void Rotate(float angle, float speed);
+
     // Changes the scale of the Object
     void SetScale(sf::Vector2f newScale);
+
+    // Set the active state (if it's false the update function will not be called)
+    void SetActive(bool a);
 
 public:
     // Constructor
@@ -39,9 +50,6 @@ public:
 
     // True if the object is active
     virtual bool IsActive();
-
-    // Set the active state (if it's false the update function will not be called)
-    void SetActive(bool a);
 
     // Update the object each frame
     virtual void Update();
@@ -57,7 +65,7 @@ public:
 };
 
 // Object that is parent of other objects that depend on it when it's deleted all its children are deleted
-class Parent : public Object
+class Parent : virtual public Object
 {
 private:
     std::list<Object *> children;
@@ -74,15 +82,29 @@ public:
 };
 
 // Object that is a child of another object its transform, visibility and active State are dependent of its parent's
-class Child : public Object
+class Child : virtual public Object
 {
 private:
     Parent *parent;
-
-protected:
     sf::Vector2f localPosition;
     float localRotation;
     sf::Vector2f localScale;
+
+protected:
+    // Changes the local position of the Object
+    void SetLocalPosition(sf::Vector2f newPosition);
+
+    // Moves the object from it's local position twords a direction with a specified speed
+    void LocalMove(sf::Vector2f direction, float speed);
+
+    // Changes the local rotation of the Object
+    void SetLocalRotation(float newRotation);
+
+    // Rotates the object form it's local rotation twords an angle with a specified speed
+    void LocalRotate(float angle, float speed);
+
+    // Changes the local scale of the Object
+    void SetLocalScale(sf::Vector2f newScale);
 
 public:
     // Constructor
@@ -97,124 +119,103 @@ public:
 
     // Update the child object each frame
     virtual void Update() override;
+
+    // Get the local position of the object
+    sf::Vector2f GetLocalPosition();
+
+    // Get the local rotation of the object
+    float GetLocalRotation();
+
+    // Get the local scale of the object
+    sf::Vector2f GetLocalScale();
+
+    // Get the parent of the object
+    Parent *GetParent();
 };
 
-// Object that has a sprite
-class SpriteObject : public Object
+class VisibleObject : virtual public Object
 {
-protected:
-    sf::Sprite sprite;
+private:
     bool visible;
+
+protected:
+    // Set the visibility of the object
+    void SetVisible(bool visibility);
 
 public:
     // Constructor
-    SpriteObject();
-    SpriteObject(bool activeState, bool visibility);
-
-    // Update object each frame add changes to the sprite
-    virtual void Update() override;
+    VisibleObject();
+    VisibleObject(bool activeState, bool visibility);
 
     // True if object is visible
     bool IsVisible();
-    // Set the visibility of the object
-    void SetVisible(bool visibility);
+};
+
+// Object that has a sprite
+class SpriteObject : public VisibleObject
+{
+protected:
+    sf::Sprite sprite;
+
+public:
+    // Update object each frame add changes to the sprite
+    virtual void Update() override;
 
     // Returns the sprite of the object so it can be drawn
     sf::Sprite GetSprite();
 };
 
 // Object that has a text
-class TextObject : public Object
+class TextObject : public VisibleObject
 {
 protected:
     sf::Text text;
-    bool visible;
 
 public:
-    // Constructor
-    TextObject();
-    TextObject(bool activeState, bool visibility);
-
     // Update object each frame add changes to the convex text
     virtual void Update() override;
-
-    // True if object is visible
-    bool IsVisible();
-    // Set the visibility of the object
-    void SetVisible(bool visibility);
 
     // Returns the sprite of the object so it can be drawn
     sf::Text GetText();
 };
 
 // Object that has a circle shape
-class CircleObject : public Object
+class CircleObject : public VisibleObject
 {
 protected:
     sf::CircleShape circle;
-    bool visible;
 
 public:
-    // Constructor
-    CircleObject();
-    CircleObject(bool activeState, bool visibility);
-
     // Update object each frame add changes to the circle
     virtual void Update() override;
-
-    // True if object is visible
-    bool IsVisible();
-    // Set the visibility of the object
-    void SetVisible(bool visibility);
 
     // Returns the circle shape of the object so it can be drawn
     sf::CircleShape GetCircleShape();
 };
 
 // Object that has a rectangle shape
-class RectangleObject : public Object
+class RectangleObject : public VisibleObject
 {
 protected:
     sf::RectangleShape rectangle;
-    bool visible;
 
 public:
-    // Constructor
-    RectangleObject();
-    RectangleObject(bool activeState, bool visibility);
-
     // Update object each frame add changes to the rectangle
     virtual void Update() override;
-
-    // True if object is visible
-    bool IsVisible();
-    // Set the visibility of the object
-    void SetVisible(bool visibility);
 
     // Returns the Rectangle Shape of the object so it can be drawn
     sf::RectangleShape GetRectangleShape();
 };
 
 // Object that has a convex shape
-class ConvexObject : public Object
+class ConvexObject : public VisibleObject
 {
 protected:
     sf::ConvexShape convexShape;
-    bool visible;
 
 public:
-    // Constructor
-    ConvexObject();
-    ConvexObject(bool activeState, bool visibility);
-
     // Update object each frame add changes to the convex shape
     virtual void Update() override;
-
-    // True if object is visible
-    bool IsVisible();
-
-    // Set the visibility of the object
-    void SetVisible(bool visibility);
 
     // Returns the convex shape of the object so it can be drawn
     sf::ConvexShape GetConvexShape();

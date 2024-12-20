@@ -1,5 +1,32 @@
 #include "Object.h"
 
+void Child::SetLocalPosition(sf::Vector2f newPosition)
+{
+    this->localPosition = newPosition;
+}
+
+void Child::LocalMove(sf::Vector2f direction, float speed)
+{
+    float magnitude = sqrt(direction.x * direction.x + direction.y * direction.y);
+    direction /= magnitude;
+    this->localPosition += direction * speed;
+}
+
+void Child::SetLocalRotation(float newRotation)
+{
+    this->localRotation = newRotation;
+}
+
+void Child::LocalRotate(float angle, float speed)
+{
+    this->localRotation += angle * speed;
+}
+
+void Child::SetLocalScale(sf::Vector2f newScale)
+{
+    this->localScale = newScale;
+}
+
 Child::Child(Parent *p)
 {
     if (!p)
@@ -8,15 +35,15 @@ Child::Child(Parent *p)
         delete this;
     }
 
-    this->active = true;
+    this->SetActive(true);
 
     this->parent = p;
     this->parent->AddChild(this);
 
     // Initialize transform based on parent
-    this->position = this->parent->GetPosition();
-    this->rotation = this->parent->GetRotation();
-    this->scale = this->parent->GetScale();
+    this->SetPosition(this->parent->GetPosition());
+    this->SetRotation(this->parent->GetRotation());
+    this->SetScale(this->parent->GetScale());
 
     // Initialize local transform
     this->localPosition = sf::Vector2f(0, 0);
@@ -34,15 +61,15 @@ Child::Child(bool activeState, Parent *p)
         delete this;
     }
 
-    this->active = activeState;
+    this->SetActive(activeState);
 
     this->parent = p;
     this->parent->AddChild(this);
 
     // Initialize transform based on parent
-    this->position = this->parent->GetPosition();
-    this->rotation = this->parent->GetRotation();
-    this->scale = this->parent->GetScale();
+    this->SetPosition(this->parent->GetPosition());
+    this->SetRotation(this->parent->GetRotation());
+    this->SetScale(this->parent->GetScale());
 
     // Initialize local transform
     this->localPosition = sf::Vector2f(0, 0);
@@ -62,7 +89,7 @@ void Child::Delete()
 
 bool Child::IsActive()
 {
-    return this->parent->IsActive() && this->active;
+    return this->parent->IsActive() && this->Object::IsActive();
 }
 
 void Child::Update()
@@ -71,4 +98,24 @@ void Child::Update()
     this->SetRotation(this->parent->GetRotation() + this->localRotation);
     sf::Vector2f newScale(this->parent->GetScale().x * this->localScale.x, this->parent->GetScale().y * this->localScale.y);
     this->SetScale(newScale);
+}
+
+sf::Vector2f Child::GetLocalPosition()
+{
+    return this->localPosition;
+}
+
+float Child::GetLocalRotation()
+{
+    return this->localRotation;
+}
+
+sf::Vector2f Child::GetLocalScale()
+{
+    return this->localScale;
+}
+
+Parent *Child::GetParent()
+{
+    return this->parent;
 }

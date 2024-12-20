@@ -5,9 +5,21 @@ void Object::SetPosition(sf::Vector2f newPosition)
     this->position = newPosition;
 }
 
+void Object::Move(sf::Vector2f direction, float speed)
+{
+    float magnitude = sqrt(direction.x * direction.x + direction.y * direction.y);
+    direction /= magnitude;
+    this->position += direction * speed;
+}
+
 void Object::SetRotation(float newRotation)
 {
     this->rotation = newRotation;
+}
+
+void Object::Rotate(float angle, float speed)
+{
+    this->rotation += angle * speed;
 }
 
 void Object::SetScale(sf::Vector2f newScale)
@@ -78,31 +90,11 @@ sf::Vector2f Object::GetScale()
     return this->scale;
 }
 
-SpriteObject::SpriteObject() : Object()
-{
-    this->visible = true;
-}
-
-SpriteObject::SpriteObject(bool activeState, bool visibility) : Object(activeState)
-{
-    this->visible = visibility;
-}
-
 void SpriteObject::Update()
 {
-    this->sprite.setPosition(this->position);
-    this->sprite.setRotation(this->rotation);
-    this->sprite.setScale(this->scale);
-}
-
-bool SpriteObject::IsVisible()
-{
-    return this->visible;
-}
-
-void SpriteObject::SetVisible(bool visibility)
-{
-    this->visible = visibility;
+    this->sprite.setPosition(this->GetPosition());
+    this->sprite.setRotation(this->GetRotation());
+    this->sprite.setScale(this->GetScale());
 }
 
 sf::Sprite SpriteObject::GetSprite()
@@ -110,31 +102,11 @@ sf::Sprite SpriteObject::GetSprite()
     return this->sprite;
 }
 
-TextObject::TextObject() : Object()
-{
-    this->visible = true;
-}
-
-TextObject::TextObject(bool activeState, bool visibility) : Object(activeState)
-{
-    this->visible = visibility;
-}
-
 void TextObject::Update()
 {
-    this->text.setPosition(this->position);
-    this->text.setRotation(this->rotation);
-    this->text.setScale(this->scale);
-}
-
-bool TextObject::IsVisible()
-{
-    return this->visible;
-}
-
-void TextObject::SetVisible(bool visibility)
-{
-    this->visible = visibility;
+    this->text.setPosition(this->GetPosition());
+    this->text.setRotation(this->GetRotation());
+    this->text.setScale(this->GetScale());
 }
 
 sf::Text TextObject::GetText()
@@ -142,31 +114,11 @@ sf::Text TextObject::GetText()
     return this->text;
 }
 
-CircleObject::CircleObject() : Object()
-{
-    this->visible = true;
-}
-
-CircleObject::CircleObject(bool activeState, bool visibility) : Object(activeState)
-{
-    this->visible = visibility;
-}
-
 void CircleObject::Update()
 {
-    this->circle.setPosition(this->position);
-    this->circle.setRotation(this->rotation);
-    this->circle.setScale(this->scale);
-}
-
-bool CircleObject::IsVisible()
-{
-    return this->visible;
-}
-
-void CircleObject::SetVisible(bool visibility)
-{
-    this->visible = visibility;
+    this->circle.setPosition(this->GetPosition());
+    this->circle.setRotation(this->GetRotation());
+    this->circle.setScale(this->GetScale());
 }
 
 sf::CircleShape CircleObject::GetCircleShape()
@@ -174,31 +126,11 @@ sf::CircleShape CircleObject::GetCircleShape()
     return this->circle;
 }
 
-RectangleObject::RectangleObject() : Object()
-{
-    this->visible = true;
-}
-
-RectangleObject::RectangleObject(bool activeState, bool visibility) : Object(activeState)
-{
-    this->visible = visibility;
-}
-
 void RectangleObject::Update()
 {
-    this->rectangle.setPosition(this->position);
-    this->rectangle.setRotation(this->rotation);
-    this->rectangle.setScale(this->scale);
-}
-
-bool RectangleObject::IsVisible()
-{
-    return this->visible;
-}
-
-void RectangleObject::SetVisible(bool visibility)
-{
-    this->visible = visibility;
+    this->rectangle.setPosition(this->GetPosition());
+    this->rectangle.setRotation(this->GetRotation());
+    this->rectangle.setScale(this->GetScale());
 }
 
 sf::RectangleShape RectangleObject::GetRectangleShape()
@@ -206,34 +138,40 @@ sf::RectangleShape RectangleObject::GetRectangleShape()
     return this->rectangle;
 }
 
-ConvexObject::ConvexObject() : Object()
-{
-    this->visible = true;
-}
-
-ConvexObject::ConvexObject(bool activeState, bool visibility) : Object(activeState)
-{
-    this->visible = visibility;
-}
-
 void ConvexObject::Update()
 {
-    this->convexShape.setPosition(this->position);
-    this->convexShape.setRotation(this->rotation);
-    this->convexShape.setScale(this->scale);
-}
-
-bool ConvexObject::IsVisible()
-{
-    return this->visible;
-}
-
-void ConvexObject::SetVisible(bool visibility)
-{
-    this->visible = visibility;
+    this->convexShape.setPosition(this->GetPosition());
+    this->convexShape.setRotation(this->GetRotation());
+    this->convexShape.setScale(this->GetScale());
 }
 
 sf::ConvexShape ConvexObject::GetConvexShape()
 {
     return this->convexShape;
+}
+
+void VisibleObject::SetVisible(bool visibility)
+{
+    this->visible = visibility;
+}
+
+VisibleObject::VisibleObject() : Object()
+{
+    this->visible = true;
+}
+
+VisibleObject::VisibleObject(bool activeState, bool visibility) : Object(activeState)
+{
+    this->visible = visibility;
+}
+
+bool VisibleObject::IsVisible()
+{
+    Child *c;
+    VisibleObject *p;
+    if (c = dynamic_cast<Child *>(this))
+        if (p = dynamic_cast<VisibleObject *>(c->GetParent()))
+            return p->IsVisible() && this->visible;
+
+    return this->visible;
 }
