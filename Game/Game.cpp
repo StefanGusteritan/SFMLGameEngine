@@ -31,16 +31,24 @@ void Game::UpdateEvents()
 
 void Game::Update()
 {
+    // Get the new deltaTime
     this->UpdateDeltaTime();
+
+    // Update the events
     this->UpdateEvents();
 
+    // Verify the active scene
     if (!this->activeScene)
     {
         std::cout << "Failed to update scene objects (Null pointer to scene)" << std::endl;
         return;
     }
 
+    // Update all active objects in the active scene
     this->activeScene->Update();
+
+    // Update the view of the window
+    this->mainWindow.setView(this->activeScene->camera);
 }
 
 void Game::Draw()

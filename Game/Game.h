@@ -10,8 +10,11 @@ private:
     std::list<Object *> objects;
 
 public:
+    // Scene camera (defines what region is shown on screen)
+    sf::View camera;
+
     // Constructor
-    Scene();
+    Scene(sf::Vector2f cameraSize, sf::Vector2f cameraCenter);
 
     // Deconstructor
     ~Scene();

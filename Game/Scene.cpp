@@ -1,7 +1,11 @@
 #include "Game.h"
 
-Scene::Scene()
+Scene::Scene(sf::Vector2f cameraSize, sf::Vector2f cameraCenter)
 {
+    // Initialize Camera
+    this->camera.setSize(cameraSize);
+    this->camera.setCenter(cameraCenter);
+
     std::cout << "Created scene " << this << std::endl;
 }
 
