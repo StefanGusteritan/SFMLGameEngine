@@ -113,6 +113,11 @@ void Game::SetActiveScene(Scene *s)
     this->nextScene = s;
 }
 
+sf::WindowBase *Game::GetWindow()
+{
+    return &this->mainWindow;
+}
+
 void Game::Run()
 {
     while (this->mainWindow.isOpen())

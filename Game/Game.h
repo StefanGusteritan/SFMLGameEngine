@@ -83,6 +83,9 @@ public:
     // Set the active scene
     void SetActiveScene(Scene *s);
 
+    // Get a pointer to the window
+    sf::WindowBase *GetWindow();
+
     // Open the game window and run the game
     void Run();
 };

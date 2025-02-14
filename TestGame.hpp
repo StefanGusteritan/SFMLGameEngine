@@ -4,16 +4,8 @@
 
 Game game(sf::VideoMode(1920, 1080), "Test", sf::Style::Default);
 
-float s1State = 0, s2State = 0;
-
-class Scene1 : public Scene
+class LevelScene : public Scene
 {
 public:
-    Scene1();
-};
-
-class Scene2 : public Scene
-{
-public:
-    Scene2();
+    LevelScene();
 };
