@@ -33,11 +33,11 @@ public:
         // Move the troop twords a target
         if (moving)
         {
-            sf::Vector2f direction = target - this->GetPosition();
+            sf::Vector2f direction = target - (this->GetPosition() + sf::Vector2f(size / 2, size / 2));
             float distance = sqrt(direction.x * direction.x + direction.y * direction.y);
 
             if (distance >= targetOffset)
-                this->Move(target, speed * game.GetDeltaTime());
+                this->Move(direction, speed * game.GetDeltaTime());
             else
             {
                 moving = false;
@@ -72,10 +72,13 @@ public:
             {
                 Deselect();
                 moving = true;
-                target = sf::Vector2f(mousePosition) - this->GetPosition();
+                target = sf::Vector2f(mousePosition);
                 std::cout << "Troop: " << this << " target set to (" << target.x << ' ' << target.y << ')' << std::endl;
             }
         }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
+            game.SetActiveScene(new PlayerScene);
 
         this->RectangleObject::Update();
     }

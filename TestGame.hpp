@@ -4,8 +4,14 @@
 
 Game game(sf::VideoMode(1920, 1080), "Test", sf::Style::Default);
 
-class LevelScene : public Scene
+class TroopScene : public Scene
 {
 public:
-    LevelScene();
+    TroopScene();
+};
+
+class PlayerScene : public Scene
+{
+public:
+    PlayerScene();
 };

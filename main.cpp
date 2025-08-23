@@ -2,7 +2,7 @@
 
 int main()
 {
-    game.SetActiveScene(new LevelScene);
+    game.SetActiveScene(new PlayerScene);
 
     game.Run();
 

@@ -8,7 +8,8 @@ void Object::SetPosition(sf::Vector2f newPosition)
 void Object::Move(sf::Vector2f direction, float speed)
 {
     float magnitude = sqrt(direction.x * direction.x + direction.y * direction.y);
-    direction /= magnitude;
+    if (magnitude != 0)
+        direction /= magnitude;
     this->position += direction * speed;
 }
 
