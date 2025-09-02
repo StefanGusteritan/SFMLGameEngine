@@ -41,6 +41,9 @@ void Game::UpdateEvents()
 {
     while (this->mainWindow.pollEvent(this->event))
     {
+        // React to events from the active scene's objects
+        this->activeScene->OnEvent(this->event);
+
         // Close event
         if (this->event.type == sf::Event::Closed)
         {

@@ -30,6 +30,15 @@ public:
         this->rectangle.setFillColor(sf::Color::White);
     }
 
+    void OnEvent(sf::Event event) override
+    {
+        if (event.type == sf::Event::KeyPressed)
+        {
+            if (event.key.code == sf::Keyboard::N)
+                game.SetActiveScene(playerScene);
+        }
+    }
+
     void Update() override
     {
         sf::Vector2f cameraMoveDirection = sf::Vector2f(0, 0);
@@ -95,8 +104,8 @@ public:
             }
         }
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
-            game.SetActiveScene(playerScene);
+        // if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
+        // game.SetActiveScene(playerScene);
 
         this->RectangleObject::Update();
     }

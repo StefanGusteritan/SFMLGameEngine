@@ -47,6 +47,9 @@ public:
     // True if the drawable object is visible (always true for not drawable object -to call the function for children-)
     virtual bool IsVisible();
 
+    // Reacts to events
+    virtual void OnEvent(sf::Event event);
+
     // Update the object each frame
     virtual void Update();
 
@@ -79,6 +82,9 @@ public:
     void AddChild(Object *c);
     // Remove a child from its list of children
     void RemoveChild(Object *c);
+
+    // Reacts to events, calls each child's method
+    virtual void OnEvent(sf::Event event) override;
 
     // Update Parent an Children each frame
     virtual void Update() override;

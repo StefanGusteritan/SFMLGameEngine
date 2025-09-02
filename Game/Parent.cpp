@@ -36,6 +36,19 @@ void Parent::RemoveChild(Object *c)
     std::cout << "Removed child " << c << " from " << this << " children list" << std::endl;
 }
 
+void Parent::OnEvent(sf::Event event)
+{
+    for (auto c : this->children)
+    {
+        // Verify the child to exist
+        if (!c)
+            std::cout << "Failed to call child method (Null pointer)" << std::endl;
+
+        else if (c->IsActive())
+            c->OnEvent(event);
+    }
+}
+
 void Parent::Update()
 {
     for (auto c : this->children)

@@ -72,6 +72,10 @@ bool Object::IsVisible()
     return true;
 }
 
+void Object::OnEvent(sf::Event event)
+{
+}
+
 void Object::Update()
 {
 }

@@ -13,6 +13,15 @@ public:
         this->rectangle.setFillColor(sf::Color::Green);
     }
 
+    void OnEvent(sf::Event event) override
+    {
+        if (event.type == sf::Event::KeyPressed)
+        {
+            if (event.key.code == sf::Keyboard::N)
+                game.SetActiveScene(troopScene);
+        }
+    }
+
     void Update() override
     {
 
@@ -27,9 +36,9 @@ public:
             moveDirection.y -= 1;
         Move(moveDirection, speed * game.GetDeltaTime());
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
-            // game.RemoveObject(this);
-            game.SetActiveScene(troopScene);
+        // if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
+        //  game.RemoveObject(this);
+        // game.SetActiveScene(troopScene);
 
         this->RectangleObject::Update();
     }

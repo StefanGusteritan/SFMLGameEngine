@@ -3,7 +3,7 @@
 
 int main()
 {
-    game.SetActiveScene(troopScene);
+    game.SetActiveScene(playerScene);
 
     game.Run();
 

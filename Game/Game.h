@@ -28,6 +28,9 @@ public:
     // Remove object from scene
     void RemoveObject(Object *o);
 
+    // Reacts to events, calls each active object's method
+    void OnEvent(sf::Event event);
+
     // Updates every active Object
     void Update();
 
@@ -113,6 +116,9 @@ public:
     // Get a pointer to the main window of the game
     sf::WindowBase *GetWindow();
 
+    // Get the deltaTime
+    float GetDeltaTime();
+
     // Get a pointer to the camera of the active scene
     sf::View *GetSceneCamera();
 
@@ -123,9 +129,6 @@ public:
     void AddObject(Object *o);
     // Remove objects from the scene and parent and add them to the list of Objects to Delete
     void RemoveObject(Object *o);
-
-    // Get the deltaTime
-    float GetDeltaTime();
 
     // Open the game window and run the game
     void Run();

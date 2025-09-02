@@ -85,6 +85,19 @@ void Scene::RemoveObject(Object *o)
         std::cout << "Removed object " << o << " from scene " << this << std::endl;
 }
 
+void Scene::OnEvent(sf::Event event)
+{
+    for (Object *o : this->objects)
+    {
+        // Verify the object to exist
+        if (!o)
+            std::cout << "Failed to call object method (Null pointer)" << std::endl;
+
+        else if (o->IsActive())
+            o->OnEvent(event);
+    }
+}
+
 void Scene::Update()
 {
     for (Object *o : this->objects)
