@@ -1,3 +1,4 @@
+#pragma once
 #include "TestGame.hpp"
 
 class Player : public RectangleObject
@@ -27,7 +28,8 @@ public:
         Move(moveDirection, speed * game.GetDeltaTime());
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
-            game.SetActiveScene(new TroopScene);
+            // game.RemoveObject(this);
+            game.SetActiveScene(troopScene);
 
         this->RectangleObject::Update();
     }

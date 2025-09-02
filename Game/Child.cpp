@@ -1,5 +1,62 @@
 #include "Object.h"
 
+Child::Child(Parent *p)
+{
+    // Verify the parent to exist (if it doesn't it deletes itself)
+    if (!p)
+    {
+        this->parent = nullptr;
+        return;
+    }
+
+    // Sets the parent
+    this->parent = p;
+
+    this->SetActive(true);
+
+    // Initialize local transform
+    this->localPosition = sf::Vector2f(0, 0);
+    this->localRotation = 0;
+    this->localScale = sf::Vector2f(1, 1);
+    // Initialize global transform based on parent
+    this->SetPosition(this->parent->GetPosition());
+    this->SetRotation(this->parent->GetRotation());
+    this->SetScale(this->parent->GetScale());
+
+    std::cout << "Child created: " << this << ", Parent: " << p << std::endl;
+}
+
+Child::Child(bool activeState, Parent *p)
+{
+    // Verify the parent to exist (if it doesn't it deletes itself)
+    if (!p)
+    {
+        this->parent = nullptr;
+        return;
+    }
+
+    // Sets the parent
+    this->parent = p;
+
+    this->SetActive(activeState);
+
+    // Initialize local transform
+    this->localPosition = sf::Vector2f(0, 0);
+    this->localRotation = 0;
+    this->localScale = sf::Vector2f(1, 1);
+    // Initialize global transform based on parent
+    this->SetPosition(this->parent->GetPosition());
+    this->SetRotation(this->parent->GetRotation());
+    this->SetScale(this->parent->GetScale());
+
+    std::cout << "Child created: " << this << ", Parent: " << p << std::endl;
+}
+
+Child::~Child()
+{
+    std::cout << "Child Object destroyed " << this << std::endl;
+}
+
 void Child::SetLocalPosition(sf::Vector2f newPosition)
 {
     this->localPosition = newPosition;
@@ -8,7 +65,8 @@ void Child::SetLocalPosition(sf::Vector2f newPosition)
 void Child::LocalMove(sf::Vector2f direction, float speed)
 {
     float magnitude = sqrt(direction.x * direction.x + direction.y * direction.y);
-    direction /= magnitude;
+    if (magnitude != 0)
+        direction /= magnitude;
     this->localPosition += direction * speed;
 }
 
@@ -27,73 +85,9 @@ void Child::SetLocalScale(sf::Vector2f newScale)
     this->localScale = newScale;
 }
 
-Child::Child(Parent *p)
-{
-    if (!p)
-    {
-        std::cout << "Failed to create child object (Null pinter to parent)" << std::endl;
-        delete this;
-    }
-
-    this->SetActive(true);
-
-    this->parent = p;
-    this->parent->AddChild(this);
-
-    // Initialize transform based on parent
-    this->SetPosition(this->parent->GetPosition());
-    this->SetRotation(this->parent->GetRotation());
-    this->SetScale(this->parent->GetScale());
-
-    // Initialize local transform
-    this->localPosition = sf::Vector2f(0, 0);
-    this->localRotation = 0;
-    this->localScale = sf::Vector2f(1, 1);
-
-    std::cout << "Child created: " << this << ", Parent: " << p << std::endl;
-}
-
-Child::Child(bool activeState, Parent *p)
-{
-    if (!p)
-    {
-        std::cout << "Failed to create child object (Null pinter to parent)" << std::endl;
-        delete this;
-    }
-
-    this->SetActive(activeState);
-
-    this->parent = p;
-    this->parent->AddChild(this);
-
-    // Initialize transform based on parent
-    this->SetPosition(this->parent->GetPosition());
-    this->SetRotation(this->parent->GetRotation());
-    this->SetScale(this->parent->GetScale());
-
-    // Initialize local transform
-    this->localPosition = sf::Vector2f(0, 0);
-    this->localRotation = 0;
-    this->localScale = sf::Vector2f(1, 1);
-
-    std::cout << "Child created: " << this << ", Parent: " << p << std::endl;
-}
-
-void Child::Delete()
-{
-    if (this->parent)
-        this->parent->RemoveChild(this);
-    std::cout << "Child Object destroyed" << this << std::endl;
-    delete this;
-}
-
-bool Child::IsActive()
-{
-    return this->parent->IsActive() && this->Object::IsActive();
-}
-
 void Child::Update()
 {
+    // Updates the global transform based of the parent transform
     this->SetPosition(this->parent->GetPosition() + this->localPosition);
     this->SetRotation(this->parent->GetRotation() + this->localRotation);
     sf::Vector2f newScale(this->parent->GetScale().x * this->localScale.x, this->parent->GetScale().y * this->localScale.y);

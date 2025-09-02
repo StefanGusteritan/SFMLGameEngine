@@ -2,6 +2,8 @@
 #include "Object.cpp"
 #include "Child.cpp"
 #include "Parent.cpp"
+#include <functional>
+#include <typeinfo>
 
 class Scene
 {
@@ -10,18 +12,19 @@ private:
     std::list<Object *> objects;
 
 public:
-    // Scene camera (defines what region is shown on screen)
-    sf::View camera;
-
     // Constructor
     Scene(sf::Vector2f cameraSize, sf::Vector2f cameraCenter);
 
     // Deconstructor
     ~Scene();
 
-    // Add object to scene
-    void AddObject(Object *o);
+    // Scene camera (defines what region is shown on screen)
+    sf::View camera;
 
+    // Returns a list with the objects in the scene
+    std::list<Object *> GetObjects();
+    // Add object to scene or if it's a child add it to its parent
+    void AddObject(Object *o);
     // Remove object from scene
     void RemoveObject(Object *o);
 
@@ -32,23 +35,53 @@ public:
     void Draw(sf::RenderWindow *window);
 };
 
+// Class that holds the properties for building a Scene
+class SceneBuilder
+{
+private:
+    // The resolution of the camera
+    sf::Vector2f cameraSize;
+    // The center point of the camera
+    sf::Vector2f cameraCenter;
+
+public:
+    // Constructor
+    SceneBuilder(sf::Vector2f cameraSize, sf::Vector2f cameraCenter, std::function<void(Scene *)> objects);
+
+    // Creates and adds the specified objects to the created scene
+    std::function<void(Scene *)> addObjectsToScene;
+
+    // Returns the camera size
+    sf::Vector2f GetCameraSize();
+
+    // Returns the camera center
+    sf::Vector2f GetCameraCenter();
+};
+
 class Game
 {
 private:
     // Variables
+
+    // Window
     sf::RenderWindow mainWindow;
 
-    Scene *activeScene;
-
+    // Delta Time
     sf::Clock dtClock;
     float deltaTime;
 
+    // Events
     sf::Event event;
 
+    // Scene
+    Scene *activeScene = nullptr;
+    // The next scene that will be active
+    Scene *nextScene = nullptr;
     // True if in the process of changing the scene
     bool changingScene;
-    // The next scene that will be active
-    Scene *nextScene;
+
+    // Object that need to be deleted
+    std::list<Object *> objectsToDelete;
 
     // Functions
 
@@ -67,6 +100,9 @@ private:
     // Trigger the change scene process
     void ChangeScene();
 
+    // Delete the object that are not used (object from the list)
+    void DeleteObjects();
+
 public:
     // Constructor - Initiates the game window
     Game(sf::VideoMode windowSize, const char *windowTitle, sf::Uint32 windowStyle);
@@ -74,17 +110,22 @@ public:
     // Deconstructor
     ~Game();
 
-    // Get the deltaTime
-    float GetDeltaTime();
+    // Get a pointer to the main window of the game
+    sf::WindowBase *GetWindow();
 
-    // Get the active scene
-    Scene *GetActiveScene();
+    // Get a pointer to the camera of the active scene
+    sf::View *GetSceneCamera();
 
     // Set the active scene
-    void SetActiveScene(Scene *s);
+    void SetActiveScene(SceneBuilder s);
 
-    // Get a pointer to the window
-    sf::WindowBase *GetWindow();
+    // Adds a new object in the active scene
+    void AddObject(Object *o);
+    // Remove objects from the scene and parent and add them to the list of Objects to Delete
+    void RemoveObject(Object *o);
+
+    // Get the deltaTime
+    float GetDeltaTime();
 
     // Open the game window and run the game
     void Run();

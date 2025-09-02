@@ -7,6 +7,8 @@ private:
     bool moving = false, selected = false, clickTimeout = false;
     sf::Vector2f target;
 
+    float cameraSpeed = 20;
+
     void Select()
     {
         std::cout << "Troop: " << this << " selected\n";
@@ -30,6 +32,20 @@ public:
 
     void Update() override
     {
+        sf::Vector2f cameraMoveDirection = sf::Vector2f(0, 0);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            cameraMoveDirection.y -= 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+            cameraMoveDirection.x -= 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            cameraMoveDirection.y += 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            cameraMoveDirection.x += 1;
+        float magnitude = sqrt(pow(cameraMoveDirection.x, 2) + pow(cameraMoveDirection.y, 2));
+        if (magnitude != 0)
+            cameraMoveDirection /= magnitude;
+        game.GetSceneCamera()->move(cameraMoveDirection * cameraSpeed * game.GetDeltaTime());
+
         // Move the troop twords a target
         if (moving)
         {
@@ -61,7 +77,9 @@ public:
         {
             clickTimeout = true;
 
-            sf::Vector2i mousePosition = sf::Mouse::getPosition(*game.GetWindow());
+            sf::Vector2f mousePosition = sf::Vector2f(sf::Mouse::getPosition(*game.GetWindow()));
+            mousePosition += game.GetSceneCamera()->getCenter();
+            mousePosition -= game.GetSceneCamera()->getSize() / 2.f;
             sf::Vector2f nvCorner = this->GetPosition(), seCorner = nvCorner + sf::Vector2f(size, size);
 
             // if the troop is clicked then it's selected/deselected
@@ -72,13 +90,13 @@ public:
             {
                 Deselect();
                 moving = true;
-                target = sf::Vector2f(mousePosition);
+                target = mousePosition;
                 std::cout << "Troop: " << this << " target set to (" << target.x << ' ' << target.y << ')' << std::endl;
             }
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
-            game.SetActiveScene(new PlayerScene);
+            game.SetActiveScene(playerScene);
 
         this->RectangleObject::Update();
     }

@@ -1,8 +1,9 @@
+#include "TestGame.hpp"
 #include "Scenes.hpp"
 
 int main()
 {
-    game.SetActiveScene(new PlayerScene);
+    game.SetActiveScene(troopScene);
 
     game.Run();
 
