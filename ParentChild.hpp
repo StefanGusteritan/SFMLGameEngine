@@ -1,12 +1,12 @@
 #include "TestGame.h"
 
-class TestChild : public CircleObject, public Child
+class TestChild : public CircleObject
 {
 private:
     float size = 100, speed = 20;
 
 public:
-    TestChild(Parent *p) : CircleObject(), Child(p)
+    TestChild(Object *p) : CircleObject(p)
     {
         this->circle.setRadius(size / 2);
         this->circle.setFillColor(sf::Color::Green);
@@ -14,17 +14,16 @@ public:
 
     void Update() override
     {
-        this->LocalMove(sf::Vector2f(1, 0), speed * game.GetDeltaTime());
+        this->Move(sf::Vector2f(1, 0), speed * game.GetDeltaTime());
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
             game.RemoveObject(this);
 
-        this->Child::Update();
         this->CircleObject::Update();
     }
 };
 
-class TestParent : public RectangleObject, public Parent
+class TestParent : public RectangleObject
 {
 private:
     float size = 100, speed = 15;
@@ -44,12 +43,5 @@ public:
             game.RemoveObject(this);
 
         this->RectangleObject::Update();
-        this->Parent::Update();
-    }
-
-    void Draw(sf::RenderWindow *window) override
-    {
-        this->RectangleObject::Draw(window);
-        this->Parent::Draw(window);
     }
 };

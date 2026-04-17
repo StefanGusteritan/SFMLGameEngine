@@ -49,18 +49,17 @@ void Scene::AddObject(Object *o)
     }
 
     // If the object is a child, it's added to its parent
-    Child *c = dynamic_cast<Child *>(o);
-    if (c)
+    if (o->IsChild())
     {
         // Verify if parent exists if id doesn't remove the object
-        Parent *p = c->GetParent();
+        Object *p = o->GetParent();
         if (!p)
         {
             std::cout << "Failed to add child object (Null pointer to parent)";
-            delete c;
+            delete o;
         }
         else
-            p->AddChild(c);
+            p->AddChild(o);
     }
     // If the object is not a child add it to the scene
     else

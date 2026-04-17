@@ -1,3 +1,4 @@
+/*
 #include "Object.h"
 
 Parent::~Parent()
@@ -74,3 +75,4 @@ void Parent::Draw(sf::RenderWindow *window)
             c->Draw(window);
     }
 }
+*/

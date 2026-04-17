@@ -1,4 +1,3 @@
-#pragma once
 #include "TestGame.h"
 
 class Player : public RectangleObject

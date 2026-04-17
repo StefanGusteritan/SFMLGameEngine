@@ -1,3 +1,4 @@
+/*
 #include "Object.h"
 
 Child::Child(Parent *p)
@@ -113,3 +114,4 @@ Parent *Child::GetParent()
 {
     return this->parent;
 }
+*/

@@ -118,14 +118,10 @@ void Game::RemoveObject(Object *o)
     // Add object to the list to be deleted
     objectsToDelete.push_back(o);
 
-    // If the object is a parent remove its children and add them to the list to be deleted
-    Parent *p = dynamic_cast<Parent *>(o);
-    if (p)
-    {
-        std::list<Object *> children = p->GetChildren();
-        for (Object *obj : children)
-            this->RemoveObject(obj);
-    }
+    // Remove objects children and add them to the list to be deleted
+    std::list<Object *> children = o->GetChildren();
+    for (Object *c : children)
+        this->RemoveObject(c);
 }
 
 void Game::DeleteObjects()
@@ -141,9 +137,8 @@ void Game::DeleteObjects()
         else
         {
             // If the object is a child, it's removed from its parent
-            Child *c = dynamic_cast<Child *>(o);
-            if (c)
-                c->GetParent()->RemoveChild(c);
+            if (o->IsChild())
+                o->GetParent()->RemoveChild(o);
             // If the object is not a child, it's removed from the active scene
             else
                 this->activeScene->RemoveObject(o);

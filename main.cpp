@@ -2,7 +2,7 @@
 
 int main()
 {
-    game.SetActiveScene(playerScene);
+    game.SetActiveScene(parentChildScene);
 
     game.Run();
 
