@@ -1,5 +1,4 @@
-#include "TestGame.hpp"
-#include "Scenes.hpp"
+#include "TestGame.h"
 
 int main()
 {

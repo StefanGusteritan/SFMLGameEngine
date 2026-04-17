@@ -1,4 +1,4 @@
-#include "TestGame.hpp"
+#include "TestGame.h"
 
 class Troop : public RectangleObject
 {

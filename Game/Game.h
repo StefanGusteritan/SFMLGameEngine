@@ -1,9 +1,8 @@
 #pragma once
-#include "Object.cpp"
-#include "Child.cpp"
-#include "Parent.cpp"
+#include "Object.h"
 #include <functional>
 #include <typeinfo>
+#include <list>
 
 class Scene
 {

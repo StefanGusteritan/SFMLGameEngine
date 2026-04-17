@@ -1,4 +1,4 @@
-#include "TestGame.hpp"
+#include "TestGame.h"
 
 class TestChild : public CircleObject, public Child
 {

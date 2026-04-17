@@ -1,5 +1,5 @@
 #pragma once
-#include "TestGame.hpp"
+#include "TestGame.h"
 
 class Player : public RectangleObject
 {
