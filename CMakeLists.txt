@@ -18,8 +18,6 @@ set(SOURCES
     TestGame.cpp
     Game/Game.cpp
     Game/Object.cpp
-    Game/Parent.cpp
-    Game/Child.cpp
     Game/Scene.cpp
 )
 

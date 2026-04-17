@@ -9,7 +9,8 @@
 
 // Base Object class that all objects in the game will inherit from
 // The object is a base instance of the game it has a position, rotation, scale
-// and an active state (if it's false the update function will not be called)
+// Has an active state (if it's false the update function will not be called)
+// Has a visible state (if it's false the draw function will not be called)
 // Can be a parent of other objects that depend on it when it's deleted all its children are deleted
 // Can be a child of another object its transform, visibility and active State are dependent of its parent's
 class Object
@@ -108,107 +109,6 @@ public:
     void RemoveChild(Object *c);
 };
 
-/*
-
-// Object that is parent of other objects that depend on it when it's deleted all its children are deleted
-class Parent : virtual public Object
-{
-private:
-    std::list<Object *> children;
-
-public:
-    // Deconstructor
-    virtual ~Parent();
-
-    // Return a list with the children of th parent
-    std::list<Object *> GetChildren();
-    // Add a child to its list of children
-    void AddChild(Object *c);
-    // Remove a child from its list of children
-    void RemoveChild(Object *c);
-
-    // Reacts to events, calls each child's method
-    virtual void OnEvent(sf::Event event) override;
-
-    // Update Parent an Children each frame
-    virtual void Update() override;
-
-    // Draw Parent and Children (if drawable)
-    virtual void Draw(sf::RenderWindow *window) override;
-};
-
-// Object that is a child of another object its transform, visibility and active State are dependent of its parent's
-class Child : virtual public Object
-{
-private:
-    Parent *parent;
-    sf::Vector2f localPosition;
-    float localRotation;
-    sf::Vector2f localScale;
-
-protected:
-    // Changes the local position of the Object
-    void SetLocalPosition(sf::Vector2f newPosition);
-    // Moves the object from it's local position in a direction with a specified speed
-    void LocalMove(sf::Vector2f direction, float speed);
-
-    // Changes the local rotation of the Object
-    void SetLocalRotation(float newRotation);
-    // Rotates the object form it's local rotation twords an angle with a specified speed
-    void LocalRotate(float angle, float speed);
-
-    // Changes the local scale of the Object
-    void SetLocalScale(sf::Vector2f newScale);
-
-public:
-    // Constructor
-    Child(Parent *p);
-    Child(bool activeState, Parent *p);
-
-    // Deconstructor
-    virtual ~Child();
-
-    // Update the child object each frame
-    virtual void Update() override;
-
-    // Get the local position of the object
-    sf::Vector2f GetLocalPosition();
-
-    // Get the local rotation of the object
-    float GetLocalRotation();
-
-    // Get the local scale of the object
-    sf::Vector2f GetLocalScale();
-
-    // Get the parent of the object
-    Parent *GetParent();
-};
-
-// Object that can be drawn on the window
-class DrawableObject : virtual public Object
-{
-private:
-    bool visible;
-
-protected:
-    // Set the visibility of the object
-    void SetVisible(bool visibility);
-
-public:
-    // Constructor
-    DrawableObject();
-    DrawableObject(bool activeState, bool visibility);
-
-    // Deconstructor
-    virtual ~DrawableObject();
-
-    // True if object is visible
-    bool IsVisible() override;
-
-    // Draw the object
-    virtual void Draw(sf::RenderWindow *window) override;
-};
-*/
 // Object that has a sprite
 class SpriteObject : public Object
 {
