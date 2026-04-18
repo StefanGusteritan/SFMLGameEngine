@@ -1,4 +1,4 @@
-#include "Game.h"
+#include "Scene.h"
 
 SceneBuilder::SceneBuilder(sf::Vector2f cameraSize, sf::Vector2f cameraCenter, std::function<void(Scene *)> objects)
 {
@@ -28,8 +28,10 @@ Scene::Scene(sf::Vector2f cameraSize, sf::Vector2f cameraCenter)
 
 Scene::~Scene()
 {
-    while (!this->objects.empty())
-        RemoveObject(this->objects.back());
+    for (Object *o : this->objects)
+        this->RemoveObject(o);
+
+    this->DeleteObjects(false);
 
     std::cout << "Deleted scene " << this << std::endl;
 }
@@ -78,10 +80,55 @@ void Scene::RemoveObject(Object *o)
         return;
     }
 
-    int l = this->objects.size();
-    this->objects.remove(o);
-    if (l != this->objects.size())
-        std::cout << "Removed object " << o << " from scene " << this << std::endl;
+    // Remove objects children and add them to the list to be deleted
+    std::list<Object *> children = o->GetChildren();
+    for (Object *c : children)
+        this->RemoveObject(c);
+
+    // Verify if the object is already marked to be deleted
+    if (o->IsMarkedToBeDeleted())
+    {
+        std::cout << "Object " << o << " is already marked to be deleted" << std::endl;
+        return;
+    }
+
+    // Mark the object to be deleted and add it to the list to be deleted
+    o->MarkToBeDeleted();
+    objectsToDelete.push_back(o);
+    std::cout << "Object " << o << " added to delete list" << std::endl;
+}
+
+void Scene::DeleteObjects(bool removeFromScene)
+{
+    while (!this->objectsToDelete.empty())
+    {
+        Object *o = objectsToDelete.front();
+        objectsToDelete.pop_front();
+
+        // Verify object to exist
+        if (!o)
+            std::cout << "Failed to remove object (Null pointer)" << std::endl;
+        else
+        {
+            if (removeFromScene)
+            {
+                // If the object is a child, it's removed from its parent
+                if (o->IsChild())
+                {
+                    if (!o->GetParent()->IsMarkedToBeDeleted())
+                        o->GetParent()->RemoveChild(o);
+                }
+                // If the object is not a child, it's removed from the active scene
+                else
+                {
+                    this->objects.remove(o);
+                    std::cout << "Removed object " << o << " from scene " << this << std::endl;
+                }
+            }
+
+            delete o;
+        }
+    }
 }
 
 void Scene::OnEvent(sf::Event event)

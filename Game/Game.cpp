@@ -12,7 +12,6 @@ Game::~Game()
 {
     delete this->nextScene;
     delete this->activeScene;
-    DeleteObjects();
     std::cout << "Game destroyed." << std::endl;
 }
 
@@ -85,12 +84,7 @@ void Game::ChangeScene()
     if (!previousScene)
         std::cout << "Failed to delete previous scene (Null pointer)" << std::endl;
     else
-    {
-        std::list<Object *> sceneObjects = previousScene->GetObjects();
-        for (Object *o : sceneObjects)
-            this->RemoveObject(o);
         delete previousScene;
-    }
 }
 
 void Game::AddObject(Object *o)
@@ -115,38 +109,7 @@ void Game::RemoveObject(Object *o)
         return;
     }
 
-    // Add object to the list to be deleted
-    objectsToDelete.push_back(o);
-
-    // Remove objects children and add them to the list to be deleted
-    std::list<Object *> children = o->GetChildren();
-    for (Object *c : children)
-        this->RemoveObject(c);
-}
-
-void Game::DeleteObjects()
-{
-    while (!this->objectsToDelete.empty())
-    {
-        Object *o = objectsToDelete.back();
-
-        // Verify object to exist
-        if (!o)
-            std::cout << "Failed to remove object (Null pointer)";
-
-        else
-        {
-            // If the object is a child, it's removed from its parent
-            if (o->IsChild())
-                o->GetParent()->RemoveChild(o);
-            // If the object is not a child, it's removed from the active scene
-            else
-                this->activeScene->RemoveObject(o);
-
-            objectsToDelete.remove(o);
-            delete o;
-        }
-    }
+    this->activeScene->RemoveObject(o);
 }
 
 void Game::Update()
@@ -193,7 +156,8 @@ void Game::Run()
     {
         if (changingScene)
             this->ChangeScene();
-        this->DeleteObjects();
+
+        this->activeScene->DeleteObjects();
 
         this->Update();
         this->Draw();

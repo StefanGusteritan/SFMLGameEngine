@@ -4,6 +4,7 @@
 
 Object::Object()
 {
+    this->toBeDeleted = false;
     this->hasParent = false;
     this->active = true;
     this->visible = true;
@@ -45,6 +46,7 @@ Object::Object(Object *p)
         this->globalScale = this->parent->GetGlobalScale();
     }
 
+    this->toBeDeleted = false;
     this->active = true;
     this->visible = true;
 
@@ -58,6 +60,7 @@ Object::Object(Object *p)
 
 Object::Object(bool activeState)
 {
+    this->toBeDeleted = false;
     this->hasParent = false;
     this->active = activeState;
     this->visible = true;
@@ -99,6 +102,7 @@ Object::Object(bool activeState, Object *p)
         this->globalScale = this->parent->GetGlobalScale();
     }
 
+    this->toBeDeleted = false;
     this->active = activeState;
     this->visible = true;
 
@@ -112,6 +116,7 @@ Object::Object(bool activeState, Object *p)
 
 Object::Object(bool activeState, bool visibility)
 {
+    this->toBeDeleted = false;
     this->hasParent = false;
     this->active = activeState;
     this->visible = visibility;
@@ -153,6 +158,7 @@ Object::Object(bool activeState, bool visibility, Object *p)
         this->globalScale = this->parent->GetGlobalScale();
     }
 
+    this->toBeDeleted = false;
     this->active = activeState;
     this->visible = visibility;
 
@@ -325,7 +331,7 @@ Object *Object::GetParent()
     return this->parent;
 }
 
-std::list<Object *> Object::GetChildren()
+const std::list<Object *> &Object::GetChildren()
 {
     return this->children;
 }
@@ -356,42 +362,15 @@ void Object::RemoveChild(Object *c)
     std::cout << "Removed child " << c << " from " << this << " children list" << std::endl;
 }
 
-/*
-DrawableObject::DrawableObject() : Object()
+void Object::MarkToBeDeleted()
 {
-    this->visible = true;
+    this->toBeDeleted = true;
 }
 
-DrawableObject::DrawableObject(bool activeState, bool visibility) : Object(activeState)
+bool Object::IsMarkedToBeDeleted()
 {
-    this->visible = visibility;
+    return this->toBeDeleted;
 }
-
-DrawableObject::~DrawableObject()
-{
-    std::cout << "Drawable object destroyed " << this << std::endl;
-}
-
-bool DrawableObject::IsVisible()
-{
-    return this->visible;
-}
-
-void DrawableObject::SetVisible(bool visibility)
-{
-    this->visible = visibility;
-}
-
-void DrawableObject::Draw(sf::RenderWindow *window)
-{
-    // Verify the window to exist
-    if (!window)
-    {
-        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
-        return;
-    }
-}
-*/
 
 // SpriteObject
 

@@ -39,6 +39,9 @@ private:
     // Children of the object
     std::list<Object *> children;
 
+    // True if the object is marked to be deleted (if it's true the object will be deleted at the end of the frame)
+    bool toBeDeleted;
+
 protected:
     // Changes the local position of the Object
     void SetPosition(sf::Vector2f newPosition);
@@ -102,11 +105,16 @@ public:
     Object *GetParent();
 
     // Return a list with the children of th parent
-    std::list<Object *> GetChildren();
+    const std::list<Object *> &GetChildren();
     // Add a child to its list of children
     void AddChild(Object *c);
     // Remove a child from its list of children
     void RemoveChild(Object *c);
+
+    // Mark the object to be deleted at the end of the frame
+    void MarkToBeDeleted();
+    // True if the object is marked to be deleted
+    bool IsMarkedToBeDeleted();
 };
 
 // Object that has a sprite
