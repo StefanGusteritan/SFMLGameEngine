@@ -36,7 +36,7 @@ Scene::~Scene()
     std::cout << "Deleted scene " << this << std::endl;
 }
 
-std::list<Object *> Scene::GetObjects()
+const std::vector<Object *> &Scene::GetObjects()
 {
     return this->objects;
 }
@@ -81,7 +81,7 @@ void Scene::RemoveObject(Object *o)
     }
 
     // Remove objects children and add them to the list to be deleted
-    std::list<Object *> children = o->GetChildren();
+    const std::vector<Object *> &children = o->GetChildren();
     for (Object *c : children)
         this->RemoveObject(c);
 
@@ -100,10 +100,10 @@ void Scene::RemoveObject(Object *o)
 
 void Scene::DeleteObjects(bool removeFromScene)
 {
-    while (!this->objectsToDelete.empty())
+    for (int i = 0; i < objectsToDelete.size(); i++)
     {
-        Object *o = objectsToDelete.front();
-        objectsToDelete.pop_front();
+        Object *o = objectsToDelete.at(i);
+        objectsToDelete[i] = nullptr;
 
         // Verify object to exist
         if (!o)
@@ -115,20 +115,31 @@ void Scene::DeleteObjects(bool removeFromScene)
                 // If the object is a child, it's removed from its parent
                 if (o->IsChild())
                 {
-                    if (!o->GetParent()->IsMarkedToBeDeleted())
+                    if (o->GetParent() && !o->GetParent()->IsMarkedToBeDeleted())
                         o->GetParent()->RemoveChild(o);
                 }
                 // If the object is not a child, it's removed from the active scene
                 else
                 {
-                    this->objects.remove(o);
-                    std::cout << "Removed object " << o << " from scene " << this << std::endl;
+                    auto it = std::find(this->objects.begin(), this->objects.end(), o);
+                    if (it == this->objects.end())
+                    {
+                        std::cout << "Failed to remove object from scene " << this << " (object not found in scene)" << std::endl;
+                    }
+                    else
+                    {
+                        *it = this->objects.back();
+                        this->objects.pop_back();
+                        std::cout << "Removed object " << o << " from scene " << this << std::endl;
+                    }
                 }
             }
 
             delete o;
         }
     }
+
+    objectsToDelete.clear();
 }
 
 void Scene::OnEvent(sf::Event event)

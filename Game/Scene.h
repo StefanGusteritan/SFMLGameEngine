@@ -6,10 +6,10 @@ class Scene
 {
 private:
     // The objects in the scene, if they are active they will be updated every frame
-    std::list<Object *> objects;
+    std::vector<Object *> objects;
 
     // Object that need to be deleted
-    std::list<Object *> objectsToDelete;
+    std::vector<Object *> objectsToDelete;
 
 public:
     // Constructor
@@ -22,7 +22,7 @@ public:
     sf::View camera;
 
     // Returns a list with the objects in the scene
-    std::list<Object *> GetObjects();
+    const std::vector<Object *> &GetObjects();
     // Add object to scene or if it's a child add it to its parent
     void AddObject(Object *o);
     // Remove object from scene

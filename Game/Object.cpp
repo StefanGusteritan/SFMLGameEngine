@@ -284,13 +284,7 @@ void Object::Update()
 
 void Object::Draw(sf::RenderWindow *window)
 {
-    // Verify the window to exist
-    if (!window)
-    {
-        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
-        return;
-    }
-
+    // Draw the children of the object
     for (auto c : this->children)
     {
         // Verify the child to exist
@@ -349,7 +343,7 @@ Object *Object::GetParent()
     return this->parent;
 }
 
-const std::list<Object *> &Object::GetChildren()
+const std::vector<Object *> &Object::GetChildren()
 {
     return this->children;
 }
@@ -376,7 +370,14 @@ void Object::RemoveChild(Object *c)
         return;
     }
 
-    this->children.remove(c);
+    auto it = std::find(this->children.begin(), this->children.end(), c);
+    if (it == this->children.end())
+    {
+        std::cout << "Failed to remove child " << c << " from " << this << " (child not found in children list)" << std::endl;
+        return;
+    }
+    *it = this->children.back();
+    this->children.pop_back();
     std::cout << "Removed child " << c << " from " << this << " children list" << std::endl;
 }
 
@@ -412,6 +413,7 @@ SpriteObject::SpriteObject(bool activeState, bool visibility, Object *p) : Objec
 }
 void SpriteObject::Update()
 {
+    // Update the object and its children
     this->Object::Update();
 
     // Sets the transform to the sprite
@@ -422,9 +424,17 @@ void SpriteObject::Update()
 
 void SpriteObject::Draw(sf::RenderWindow *window)
 {
-    this->Object::Draw(window);
-
+    // Verify the window to exist
+    if (!window)
+    {
+        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
+        return;
+    }
+    // Draw the sprite
     window->draw(this->sprite);
+
+    // Draw the children of the object
+    this->Object::Draw(window);
 }
 
 // TextObject
@@ -450,6 +460,7 @@ TextObject::TextObject(bool activeState, bool visibility, Object *p) : Object(ac
 
 void TextObject::Update()
 {
+    // Update the object and its children
     this->Object::Update();
 
     // Sets the transform to the text
@@ -460,9 +471,17 @@ void TextObject::Update()
 
 void TextObject::Draw(sf::RenderWindow *window)
 {
-    this->Object::Draw(window);
-
+    // Verify the window to exist
+    if (!window)
+    {
+        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
+        return;
+    }
+    // Draw the text
     window->draw(this->text);
+
+    // Draw the children of the object
+    this->Object::Draw(window);
 }
 
 // CircleObject
@@ -488,6 +507,7 @@ CircleObject::CircleObject(bool activeState, bool visibility, Object *p) : Objec
 
 void CircleObject::Update()
 {
+    // Update the object and its children
     this->Object::Update();
 
     // Sets the transform to the circle
@@ -498,9 +518,17 @@ void CircleObject::Update()
 
 void CircleObject::Draw(sf::RenderWindow *window)
 {
-    this->Object::Draw(window);
-
+    // Verify the window to exist
+    if (!window)
+    {
+        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
+        return;
+    }
+    // Draw the circle
     window->draw(this->circle);
+
+    // Draw the children of the object
+    this->Object::Draw(window);
 }
 
 // RectangleObject
@@ -526,6 +554,7 @@ RectangleObject::RectangleObject(bool activeState, bool visibility, Object *p) :
 
 void RectangleObject::Update()
 {
+    // Update the object and its children
     this->Object::Update();
 
     // Sets the transform to the rectangle
@@ -536,9 +565,17 @@ void RectangleObject::Update()
 
 void RectangleObject::Draw(sf::RenderWindow *window)
 {
-    this->Object::Draw(window);
-
+    // Verify the window to exist
+    if (!window)
+    {
+        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
+        return;
+    }
+    // Draw the rectangle
     window->draw(this->rectangle);
+
+    // Draw the children of the object
+    this->Object::Draw(window);
 }
 
 // ConvexObject
@@ -564,6 +601,7 @@ ConvexObject::ConvexObject(bool activeState, bool visibility, Object *p) : Objec
 
 void ConvexObject::Update()
 {
+    // Update the object and its children
     this->Object::Update();
 
     // Sets the transform to the shape
@@ -574,7 +612,15 @@ void ConvexObject::Update()
 
 void ConvexObject::Draw(sf::RenderWindow *window)
 {
-    this->Object::Draw(window);
-
+    // Verify the window to exist
+    if (!window)
+    {
+        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
+        return;
+    }
+    // Draw the shape
     window->draw(this->convexShape);
+
+    // Draw the children of the object
+    this->Object::Draw(window);
 }

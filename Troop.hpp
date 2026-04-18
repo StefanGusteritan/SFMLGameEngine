@@ -3,8 +3,8 @@
 class Troop : public RectangleObject
 {
 private:
-    float size = 200, speed = 25, targetOffset = 25, clickTime = 0.2f, clickTimer = 0;
-    bool moving = false, selected = false, clickTimeout = false;
+    float size = 200, speed = 25, targetOffset = 25;
+    bool moving = false, selected = false;
     sf::Vector2f target;
 
     float cameraSpeed = 20;
@@ -28,6 +28,7 @@ public:
     {
         this->rectangle.setSize(sf::Vector2f(size, size));
         this->rectangle.setFillColor(sf::Color::White);
+        this->rectangle.setOrigin(size / 2, size / 2);
     }
 
     void OnEvent(sf::Event event) override
@@ -36,6 +37,29 @@ public:
         {
             if (event.key.code == sf::Keyboard::N)
                 game.SetActiveScene(playerScene);
+        }
+        if (event.type == sf::Event::MouseButtonPressed)
+        {
+            if (event.mouseButton.button == sf::Mouse::Left)
+            {
+                sf::Vector2f mousePosition = sf::Vector2f(sf::Mouse::getPosition(*game.GetWindow()));
+                mousePosition += game.GetSceneCamera()->getCenter();
+                mousePosition -= game.GetSceneCamera()->getSize() / 2.f;
+                sf::Vector2f nvCorner = this->GetPosition() - sf::Vector2f(size / 2, size / 2),
+                             seCorner = nvCorner + sf::Vector2f(size, size);
+
+                // if the troop is clicked then it's selected/deselected
+                if (mousePosition.x >= nvCorner.x && mousePosition.x <= seCorner.x && mousePosition.y >= nvCorner.y && mousePosition.y <= seCorner.y)
+                    selected ? Deselect() : Select();
+                // if the click is anyware else the troop target will change
+                else if (selected)
+                {
+                    Deselect();
+                    moving = true;
+                    target = mousePosition;
+                    std::cout << "Troop: " << this << " target set to (" << target.x << ' ' << target.y << ')' << std::endl;
+                }
+            }
         }
     }
 
@@ -58,7 +82,7 @@ public:
         // Move the troop twords a target
         if (moving)
         {
-            sf::Vector2f direction = target - (this->GetPosition() + sf::Vector2f(size / 2, size / 2));
+            sf::Vector2f direction = target - this->GetPosition();
             float distance = sqrt(direction.x * direction.x + direction.y * direction.y);
 
             if (distance >= targetOffset)
@@ -69,43 +93,6 @@ public:
                 std::cout << "Troop: " << this << " reached target\n";
             }
         }
-
-        // Time between mose clicks
-        if (clickTimeout)
-        {
-            if (clickTimer < clickTime)
-                clickTimer += game.GetDeltaTime();
-            else
-            {
-                clickTimeout = false;
-                clickTimer = 0;
-            }
-        }
-
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && !clickTimeout)
-        {
-            clickTimeout = true;
-
-            sf::Vector2f mousePosition = sf::Vector2f(sf::Mouse::getPosition(*game.GetWindow()));
-            mousePosition += game.GetSceneCamera()->getCenter();
-            mousePosition -= game.GetSceneCamera()->getSize() / 2.f;
-            sf::Vector2f nvCorner = this->GetPosition(), seCorner = nvCorner + sf::Vector2f(size, size);
-
-            // if the troop is clicked then it's selected/deselected
-            if (mousePosition.x >= nvCorner.x && mousePosition.x <= seCorner.x && mousePosition.y >= nvCorner.y && mousePosition.y <= seCorner.y)
-                selected ? Deselect() : Select();
-            // if the click is anyware else the troop target will change
-            else if (selected)
-            {
-                Deselect();
-                moving = true;
-                target = mousePosition;
-                std::cout << "Troop: " << this << " target set to (" << target.x << ' ' << target.y << ')' << std::endl;
-            }
-        }
-
-        // if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
-        // game.SetActiveScene(playerScene);
 
         this->RectangleObject::Update();
     }

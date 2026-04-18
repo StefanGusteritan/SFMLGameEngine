@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <math.h>
-#include <list>
+#include <vector>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
@@ -23,7 +23,6 @@ private:
 
     // Transform of the object
     // Global transform
-    sf::Transform globalTransform;
     sf::Vector2f globalPosition;
     float globalRotation;
     sf::Vector2f globalScale;
@@ -38,7 +37,7 @@ private:
     bool visible;
 
     // Children of the object
-    std::list<Object *> children;
+    std::vector<Object *> children;
 
     // True if the object is marked to be deleted (if it's true the object will be deleted at the end of the frame)
     bool toBeDeleted;
@@ -106,7 +105,7 @@ public:
     Object *GetParent();
 
     // Return a list with the children of th parent
-    const std::list<Object *> &GetChildren();
+    const std::vector<Object *> &GetChildren();
     // Add a child to its list of children
     void AddChild(Object *c);
     // Remove a child from its list of children

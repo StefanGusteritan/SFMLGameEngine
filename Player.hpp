@@ -35,10 +35,6 @@ public:
             moveDirection.y -= 1;
         Move(moveDirection, speed * game.GetDeltaTime());
 
-        // if (sf::Keyboard::isKeyPressed(sf::Keyboard::N))
-        //  game.RemoveObject(this);
-        // game.SetActiveScene(troopScene);
-
         this->RectangleObject::Update();
     }
 };
