@@ -241,9 +241,26 @@ void Object::Update()
     if (this->hasParent)
     {
         // Updates the global transform based of the parent transform
-        this->globalPosition = this->parent->GetGlobalPosition() + this->position;
-        this->globalRotation = this->parent->GetGlobalRotation() + this->rotation;
-        this->globalScale = sf::Vector2f(this->parent->GetGlobalScale().x * this->scale.x, this->parent->GetGlobalScale().y * this->scale.y);
+
+        // Get the parent transform
+        float parentRotation = this->parent->GetGlobalRotation();
+        float parentRotationRad = parentRotation * M_PI / 180;
+        sf::Vector2f parentPosition = this->parent->GetGlobalPosition();
+        sf::Vector2f parentRight(cos(parentRotationRad), sin(parentRotationRad));
+        sf::Vector2f parentUp(-parentRight.y, parentRight.x);
+        sf::Vector2f parentScale = this->parent->GetGlobalScale();
+
+        // The global position is the sum of the parent position and the local position rotated and scaled by the parent transform
+        sf::Vector2f finalPosition;
+        finalPosition = this->position.x * parentRight * parentScale.x + this->position.y * parentUp * parentScale.y;
+        finalPosition = finalPosition + parentPosition;
+        this->globalPosition = finalPosition;
+
+        // The global rotation is the sum of the parent rotation and the local rotation
+        this->globalRotation = parentRotation + this->rotation;
+
+        // The global scale is the product of the parent scale and the local scale
+        this->globalScale = sf::Vector2f(parentScale.x * this->scale.x, parentScale.y * this->scale.y);
     }
     else
     {
@@ -253,6 +270,7 @@ void Object::Update()
         this->globalScale = this->scale;
     }
 
+    // Update the children of the object
     for (auto c : this->children)
     {
         // Verify the child to exist

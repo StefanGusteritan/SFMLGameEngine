@@ -1,25 +1,28 @@
 #include "TestGame.h"
 
-class TestChild : public CircleObject
+class TestChild : public RectangleObject
 {
 private:
     float size = 100, speed = 20;
 
 public:
-    TestChild(Object *p) : CircleObject(p)
+    TestChild(Object *p) : RectangleObject(p)
     {
-        this->circle.setRadius(size / 2);
-        this->circle.setFillColor(sf::Color::Green);
+        this->rectangle.setSize(sf::Vector2f(size, size));
+        this->rectangle.setFillColor(sf::Color::Green);
+        this->rectangle.setOrigin(size / 2, size / 2);
+        this->SetPosition(sf::Vector2f(200, 100));
+        this->SetRotation(45);
     }
 
     void Update() override
     {
-        this->Move(sf::Vector2f(1, 0), speed * game.GetDeltaTime());
+        // this->Move(sf::Vector2f(1, 0), speed * game.GetDeltaTime());
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
             game.RemoveObject(this);
 
-        this->CircleObject::Update();
+        this->RectangleObject::Update();
     }
 };
 
@@ -33,11 +36,42 @@ public:
     {
         this->rectangle.setSize(sf::Vector2f(size, size));
         this->rectangle.setFillColor(sf::Color::Blue);
+        this->rectangle.setOrigin(size / 2, size / 2);
+        this->SetPosition(sf::Vector2f(960, 540));
     }
 
     void Update() override
     {
-        this->Move(sf::Vector2f(0, 1), speed * game.GetDeltaTime());
+        // this->Move(sf::Vector2f(0, 1), speed * game.GetDeltaTime());
+
+        sf::Vector2f moveDirection = sf::Vector2f(0, 0);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            moveDirection.x += 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+            moveDirection.x -= 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            moveDirection.y += 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            moveDirection.y -= 1;
+        Move(moveDirection, speed * game.GetDeltaTime());
+
+        float rotateDirection = 0;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
+            rotateDirection += 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
+            rotateDirection -= 1;
+        this->Rotate(rotateDirection, speed * game.GetDeltaTime());
+
+        sf::Vector2f scaleDirection = sf::Vector2f(0, 0);
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::F))
+            scaleDirection.x += 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::G))
+            scaleDirection.x -= 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::T))
+            scaleDirection.y += 1;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Y))
+            scaleDirection.y -= 1;
+        this->SetScale(this->GetScale() + scaleDirection * 2.f * game.GetDeltaTime());
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::P))
             game.RemoveObject(this);

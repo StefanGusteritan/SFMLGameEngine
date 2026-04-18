@@ -23,6 +23,7 @@ private:
 
     // Transform of the object
     // Global transform
+    sf::Transform globalTransform;
     sf::Vector2f globalPosition;
     float globalRotation;
     sf::Vector2f globalScale;
