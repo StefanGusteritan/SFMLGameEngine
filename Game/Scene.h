@@ -2,6 +2,7 @@
 #include "Object.h"
 #include <functional>
 
+// Class that represents a scene, it holds the objects in the scene and the camera
 class Scene
 {
 private:
@@ -37,7 +38,7 @@ public:
     void Update();
 
     // Draw every visble Object
-    void Draw(sf::RenderWindow *window);
+    void Draw(sf::RenderWindow &window);
 };
 
 // Class that holds the properties for building a Scene
@@ -61,4 +62,46 @@ public:
 
     // Returns the camera center
     sf::Vector2f GetCameraCenter();
+};
+
+// Class that manages the scenes of the game, it holds the active scene and the next scene to change to
+class SceneManager
+{
+private:
+    // The active scene that is being updated and drawn
+    Scene *activeScene;
+    // The next scene that will be active after the change scene process is triggered
+    Scene *nextScene;
+    // True if in the process of changing the scene
+    bool changingScene;
+
+    sf::View defaultCamera;
+
+public:
+    // Constructor
+    SceneManager();
+    // Deconstructor
+    ~SceneManager();
+
+    // Set the next scene and trigger the change scene process
+    void ChangeScene(SceneBuilder s);
+    // Change the active scene to the next scene and delete the previous scene
+    void SetActiveScene();
+
+    // Adds a new object in the active scene
+    void AddObject(Object *o);
+    // Remove objects from the scene and parent and add them to the list of Objects to Delete
+    void RemoveObject(Object *o);
+    // Delete the objects that are marked to be deleted
+    void DeleteObjects();
+
+    // Reacts to events from the active scene's objects
+    void UpdateEvents(sf::Event event);
+    // Update the active scene's objects
+    void Update();
+    // Draw the active scene's objects
+    void Draw(sf::RenderWindow &window);
+
+    // Get a pointer to the camera of the active scene
+    sf::View &GetCamera();
 };

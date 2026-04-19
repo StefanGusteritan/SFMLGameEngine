@@ -36,15 +36,15 @@ public:
         if (event.type == sf::Event::KeyPressed)
         {
             if (event.key.code == sf::Keyboard::N)
-                game.SetActiveScene(playerScene);
+                game.sceneManager.ChangeScene(playerScene);
         }
         if (event.type == sf::Event::MouseButtonPressed)
         {
             if (event.mouseButton.button == sf::Mouse::Left)
             {
-                sf::Vector2f mousePosition = sf::Vector2f(sf::Mouse::getPosition(*game.GetWindow()));
-                mousePosition += game.GetSceneCamera()->getCenter();
-                mousePosition -= game.GetSceneCamera()->getSize() / 2.f;
+                sf::Vector2f mousePosition = sf::Vector2f(sf::Mouse::getPosition(game.GetWindow()));
+                mousePosition += game.sceneManager.GetCamera().getCenter();
+                mousePosition -= game.sceneManager.GetCamera().getSize() / 2.f;
                 sf::Vector2f nvCorner = this->GetPosition() - sf::Vector2f(size / 2, size / 2),
                              seCorner = nvCorner + sf::Vector2f(size, size);
 
@@ -77,7 +77,7 @@ public:
         float magnitude = sqrt(pow(cameraMoveDirection.x, 2) + pow(cameraMoveDirection.y, 2));
         if (magnitude != 0)
             cameraMoveDirection /= magnitude;
-        game.GetSceneCamera()->move(cameraMoveDirection * cameraSpeed * game.GetDeltaTime());
+        game.sceneManager.GetCamera().move(cameraMoveDirection * cameraSpeed * game.time.GetDT());
 
         // Move the troop twords a target
         if (moving)
@@ -86,7 +86,7 @@ public:
             float distance = sqrt(direction.x * direction.x + direction.y * direction.y);
 
             if (distance >= targetOffset)
-                this->Move(direction, speed * game.GetDeltaTime());
+                this->Move(direction, speed * game.time.GetDT());
             else
             {
                 moving = false;

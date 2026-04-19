@@ -17,7 +17,7 @@ public:
         if (event.type == sf::Event::KeyPressed)
         {
             if (event.key.code == sf::Keyboard::N)
-                game.SetActiveScene(troopScene);
+                game.sceneManager.ChangeScene(troopScene);
         }
     }
 
@@ -33,7 +33,7 @@ public:
             moveDirection.y += 1;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
             moveDirection.y -= 1;
-        Move(moveDirection, speed * game.GetDeltaTime());
+        Move(moveDirection, speed * game.time.GetDT());
 
         this->RectangleObject::Update();
     }

@@ -84,7 +84,7 @@ public:
     // Update the object each frame
     virtual void Update();
     // Draw the object (if it's drawable, else it does nothing)
-    virtual void Draw(sf::RenderWindow *window);
+    virtual void Draw(sf::RenderWindow &window);
 
     // Get the global position of the object
     sf::Vector2f GetGlobalPosition();
@@ -135,7 +135,7 @@ public:
     virtual void Update() override;
 
     // Draw the object
-    void Draw(sf::RenderWindow *window) override;
+    void Draw(sf::RenderWindow &window) override;
 };
 
 // Object that has a text
@@ -156,7 +156,7 @@ public:
     virtual void Update() override;
 
     // Draw the object
-    void Draw(sf::RenderWindow *window) override;
+    void Draw(sf::RenderWindow &window) override;
 };
 
 // Object that has a circle shape
@@ -177,7 +177,7 @@ public:
     virtual void Update() override;
 
     // Draw the object
-    void Draw(sf::RenderWindow *window) override;
+    void Draw(sf::RenderWindow &window) override;
 };
 
 // Object that has a rectangle shape
@@ -198,7 +198,7 @@ public:
     virtual void Update() override;
 
     // Draw the object
-    void Draw(sf::RenderWindow *window) override;
+    void Draw(sf::RenderWindow &window) override;
 };
 
 // Object that has a convex shape
@@ -219,5 +219,5 @@ public:
     virtual void Update() override;
 
     // Draw the object
-    void Draw(sf::RenderWindow *window) override;
+    void Draw(sf::RenderWindow &window) override;
 };

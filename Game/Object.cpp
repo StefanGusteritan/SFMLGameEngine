@@ -4,48 +4,28 @@
 
 Object::Object()
 {
+    // Initialize default values
     this->toBeDeleted = false;
     this->hasParent = false;
     this->active = true;
     this->visible = true;
 
+    // Initialize local transform
+    this->position = sf::Vector2f(0, 0);
+    this->rotation = 0;
+    this->scale = sf::Vector2f(1, 1);
+
     // Initialize global transform
     this->globalPosition = sf::Vector2f(0, 0);
     this->globalRotation = 0;
     this->globalScale = sf::Vector2f(1, 1);
-
-    // Initialize transform
-    this->position = sf::Vector2f(0, 0);
-    this->rotation = 0;
-    this->scale = sf::Vector2f(1, 1);
 
     std::cout << "Object created: " << this << " with no parent" << std::endl;
 }
 
 Object::Object(Object *p)
 {
-    // Verify the parent to exist
-    if (!p)
-    {
-        this->parent = nullptr;
-        hasParent = false;
-
-        // Initialize global transform
-        this->globalPosition = sf::Vector2f(0, 0);
-        this->globalRotation = 0;
-        this->globalScale = sf::Vector2f(1, 1);
-    }
-    else
-    {
-        this->parent = p;
-        hasParent = true;
-
-        // Initialize global transform based on parent
-        this->globalPosition = this->parent->GetGlobalPosition();
-        this->globalRotation = this->parent->GetGlobalRotation();
-        this->globalScale = this->parent->GetGlobalScale();
-    }
-
+    // Initialize default values
     this->toBeDeleted = false;
     this->active = true;
     this->visible = true;
@@ -55,53 +35,59 @@ Object::Object(Object *p)
     this->rotation = 0;
     this->scale = sf::Vector2f(1, 1);
 
-    std::cout << "Object created: " << this << " with parent: " << p << std::endl;
+    // Verify the parent to exist
+    if (!p)
+    {
+        // If the parent doesn't exist the object is created without a parent
+        this->parent = nullptr;
+        hasParent = false;
+
+        // Initialize global transform
+        this->globalPosition = sf::Vector2f(0, 0);
+        this->globalRotation = 0;
+        this->globalScale = sf::Vector2f(1, 1);
+
+        std::cout << "Object created: " << this << " with no parent (Null pointer)" << std::endl;
+    }
+    else
+    {
+        // If the parent exists the object is created as a child of the parent
+        this->parent = p;
+        hasParent = true;
+
+        // Initialize global transform based on parent
+        this->globalPosition = this->parent->GetGlobalPosition();
+        this->globalRotation = this->parent->GetGlobalRotation();
+        this->globalScale = this->parent->GetGlobalScale();
+
+        std::cout << "Object created: " << this << " with parent: " << p << std::endl;
+    }
 }
 
 Object::Object(bool activeState)
 {
+    // Initialize default values
     this->toBeDeleted = false;
     this->hasParent = false;
     this->active = activeState;
     this->visible = true;
-
-    // Initialize global transform
-    this->globalPosition = sf::Vector2f(0, 0);
-    this->globalRotation = 0;
-    this->globalScale = sf::Vector2f(1, 1);
 
     // Initialize local transform
     this->position = sf::Vector2f(0, 0);
     this->rotation = 0;
     this->scale = sf::Vector2f(1, 1);
 
-    std::cout << "Object created: " << this << "with no parent" << std::endl;
+    // Initialize global transform
+    this->globalPosition = sf::Vector2f(0, 0);
+    this->globalRotation = 0;
+    this->globalScale = sf::Vector2f(1, 1);
+
+    std::cout << "Object created: " << this << " with no parent" << std::endl;
 }
 
 Object::Object(bool activeState, Object *p)
 {
-    // Verify the parent to exist
-    if (!p)
-    {
-        this->parent = nullptr;
-        hasParent = false;
-
-        // Initialize global transform
-        this->globalPosition = sf::Vector2f(0, 0);
-        this->globalRotation = 0;
-        this->globalScale = sf::Vector2f(1, 1);
-    }
-    else
-    {
-        this->parent = p;
-        hasParent = true;
-
-        // Initialize global transform based on parent
-        this->globalPosition = this->parent->GetGlobalPosition();
-        this->globalRotation = this->parent->GetGlobalRotation();
-        this->globalScale = this->parent->GetGlobalScale();
-    }
-
+    // Initialize default values
     this->toBeDeleted = false;
     this->active = activeState;
     this->visible = true;
@@ -111,34 +97,10 @@ Object::Object(bool activeState, Object *p)
     this->rotation = 0;
     this->scale = sf::Vector2f(1, 1);
 
-    std::cout << "Object created: " << this << " with parent: " << p << std::endl;
-}
-
-Object::Object(bool activeState, bool visibility)
-{
-    this->toBeDeleted = false;
-    this->hasParent = false;
-    this->active = activeState;
-    this->visible = visibility;
-
-    // Initialize global transform
-    this->globalPosition = sf::Vector2f(0, 0);
-    this->globalRotation = 0;
-    this->globalScale = sf::Vector2f(1, 1);
-
-    // Initialize local transform
-    this->position = sf::Vector2f(0, 0);
-    this->rotation = 0;
-    this->scale = sf::Vector2f(1, 1);
-
-    std::cout << "Object created: " << this << "with no parent" << std::endl;
-}
-
-Object::Object(bool activeState, bool visibility, Object *p)
-{
     // Verify the parent to exist
     if (!p)
     {
+        // If the parent doesn't exist the object is created without a parent
         this->parent = nullptr;
         hasParent = false;
 
@@ -146,9 +108,12 @@ Object::Object(bool activeState, bool visibility, Object *p)
         this->globalPosition = sf::Vector2f(0, 0);
         this->globalRotation = 0;
         this->globalScale = sf::Vector2f(1, 1);
+
+        std::cout << "Object created: " << this << " with no parent (Null pointer)" << std::endl;
     }
     else
     {
+        // If the parent exists the object is created as a child of the parent
         this->parent = p;
         hasParent = true;
 
@@ -156,8 +121,35 @@ Object::Object(bool activeState, bool visibility, Object *p)
         this->globalPosition = this->parent->GetGlobalPosition();
         this->globalRotation = this->parent->GetGlobalRotation();
         this->globalScale = this->parent->GetGlobalScale();
-    }
 
+        std::cout << "Object created: " << this << " with parent: " << p << std::endl;
+    }
+}
+
+Object::Object(bool activeState, bool visibility)
+{
+    // Initialize default values
+    this->toBeDeleted = false;
+    this->hasParent = false;
+    this->active = activeState;
+    this->visible = visibility;
+
+    // Initialize local transform
+    this->position = sf::Vector2f(0, 0);
+    this->rotation = 0;
+    this->scale = sf::Vector2f(1, 1);
+
+    // Initialize global transform
+    this->globalPosition = sf::Vector2f(0, 0);
+    this->globalRotation = 0;
+    this->globalScale = sf::Vector2f(1, 1);
+
+    std::cout << "Object created: " << this << " with no parent" << std::endl;
+}
+
+Object::Object(bool activeState, bool visibility, Object *p)
+{
+    // Initialize default values
     this->toBeDeleted = false;
     this->active = activeState;
     this->visible = visibility;
@@ -167,12 +159,38 @@ Object::Object(bool activeState, bool visibility, Object *p)
     this->rotation = 0;
     this->scale = sf::Vector2f(1, 1);
 
-    std::cout << "Object created: " << this << " with parent: " << p << std::endl;
+    // Verify the parent to exist
+    if (!p)
+    {
+        // If the parent doesn't exist the object is created without a parent
+        this->parent = nullptr;
+        hasParent = false;
+
+        // Initialize global transform
+        this->globalPosition = sf::Vector2f(0, 0);
+        this->globalRotation = 0;
+        this->globalScale = sf::Vector2f(1, 1);
+
+        std::cout << "Object created: " << this << " with no parent (Null pointer)" << std::endl;
+    }
+    else
+    {
+        // If the parent exists the object is created as a child of the parent
+        this->parent = p;
+        hasParent = true;
+
+        // Initialize global transform based on parent
+        this->globalPosition = this->parent->GetGlobalPosition();
+        this->globalRotation = this->parent->GetGlobalRotation();
+        this->globalScale = this->parent->GetGlobalScale();
+
+        std::cout << "Object created: " << this << " with parent: " << p << std::endl;
+    }
 }
 
 Object::~Object()
 {
-    std::cout << "Object destroyed: " << this << std::endl;
+    std::cout << "Object deleted: " << this << std::endl;
 }
 
 void Object::SetPosition(sf::Vector2f newPosition)
@@ -213,18 +231,19 @@ void Object::SetActive(bool a)
     this->active = a;
 }
 
-void Object::SetVisible(bool visibility)
-{
-    this->visible = visibility;
-}
-
 bool Object::IsVisible()
 {
     return this->visible;
 }
 
+void Object::SetVisible(bool visibility)
+{
+    this->visible = visibility;
+}
+
 void Object::OnEvent(sf::Event event)
 {
+    // React to events for the children of the object
     for (auto c : this->children)
     {
         // Verify the child to exist
@@ -282,7 +301,7 @@ void Object::Update()
     }
 }
 
-void Object::Draw(sf::RenderWindow *window)
+void Object::Draw(sf::RenderWindow &window)
 {
     // Draw the children of the object
     for (auto c : this->children)
@@ -358,7 +377,7 @@ void Object::AddChild(Object *c)
     }
 
     this->children.push_back(c);
-    std::cout << "Adding child " << c << " to " << this << " children list" << std::endl;
+    std::cout << "Added child " << c << " to " << this << " children list" << std::endl;
 }
 
 void Object::RemoveChild(Object *c)
@@ -370,12 +389,15 @@ void Object::RemoveChild(Object *c)
         return;
     }
 
+    // Find the child in the list of children and verify it to exist
     auto it = std::find(this->children.begin(), this->children.end(), c);
     if (it == this->children.end())
     {
         std::cout << "Failed to remove child " << c << " from " << this << " (child not found in children list)" << std::endl;
         return;
     }
+
+    // Remove the child from the list of children
     *it = this->children.back();
     this->children.pop_back();
     std::cout << "Removed child " << c << " from " << this << " children list" << std::endl;
@@ -422,16 +444,10 @@ void SpriteObject::Update()
     this->sprite.setScale(this->GetGlobalScale());
 }
 
-void SpriteObject::Draw(sf::RenderWindow *window)
+void SpriteObject::Draw(sf::RenderWindow &window)
 {
-    // Verify the window to exist
-    if (!window)
-    {
-        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
-        return;
-    }
     // Draw the sprite
-    window->draw(this->sprite);
+    window.draw(this->sprite);
 
     // Draw the children of the object
     this->Object::Draw(window);
@@ -469,16 +485,10 @@ void TextObject::Update()
     this->text.setScale(this->GetGlobalScale());
 }
 
-void TextObject::Draw(sf::RenderWindow *window)
+void TextObject::Draw(sf::RenderWindow &window)
 {
-    // Verify the window to exist
-    if (!window)
-    {
-        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
-        return;
-    }
     // Draw the text
-    window->draw(this->text);
+    window.draw(this->text);
 
     // Draw the children of the object
     this->Object::Draw(window);
@@ -516,16 +526,10 @@ void CircleObject::Update()
     this->circle.setScale(this->GetGlobalScale());
 }
 
-void CircleObject::Draw(sf::RenderWindow *window)
+void CircleObject::Draw(sf::RenderWindow &window)
 {
-    // Verify the window to exist
-    if (!window)
-    {
-        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
-        return;
-    }
     // Draw the circle
-    window->draw(this->circle);
+    window.draw(this->circle);
 
     // Draw the children of the object
     this->Object::Draw(window);
@@ -563,16 +567,10 @@ void RectangleObject::Update()
     this->rectangle.setScale(this->GetGlobalScale());
 }
 
-void RectangleObject::Draw(sf::RenderWindow *window)
+void RectangleObject::Draw(sf::RenderWindow &window)
 {
-    // Verify the window to exist
-    if (!window)
-    {
-        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
-        return;
-    }
     // Draw the rectangle
-    window->draw(this->rectangle);
+    window.draw(this->rectangle);
 
     // Draw the children of the object
     this->Object::Draw(window);
@@ -610,16 +608,10 @@ void ConvexObject::Update()
     this->convexShape.setScale(this->GetGlobalScale());
 }
 
-void ConvexObject::Draw(sf::RenderWindow *window)
+void ConvexObject::Draw(sf::RenderWindow &window)
 {
-    // Verify the window to exist
-    if (!window)
-    {
-        std::cout << "Failed to draw object " << this << " (Null pointer to window)";
-        return;
-    }
     // Draw the shape
-    window->draw(this->convexShape);
+    window.draw(this->convexShape);
 
     // Draw the children of the object
     this->Object::Draw(window);

@@ -19,6 +19,7 @@ set(SOURCES
     Game/Game.cpp
     Game/Object.cpp
     Game/Scene.cpp
+    Game/TimeManager.cpp
 )
 
 # Create Executable
