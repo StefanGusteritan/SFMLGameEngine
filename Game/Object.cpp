@@ -243,16 +243,6 @@ void Object::SetVisible(bool visibility)
 
 void Object::OnEvent(sf::Event event)
 {
-    // React to events for the children of the object
-    for (auto c : this->children)
-    {
-        // Verify the child to exist
-        if (!c)
-            std::cout << "Failed to call child method (Null pointer)" << std::endl;
-
-        else if (c->IsActive())
-            c->OnEvent(event);
-    }
 }
 
 void Object::Update()
@@ -294,9 +284,12 @@ void Object::Update()
     {
         // Verify the child to exist
         if (!c)
+        {
             std::cout << "Failed to update child (Null pointer)" << std::endl;
+            continue;
+        }
 
-        else if (c->IsActive())
+        if (c->IsActive())
             c->Update();
     }
 }
@@ -308,9 +301,12 @@ void Object::Draw(sf::RenderWindow &window)
     {
         // Verify the child to exist
         if (!c)
+        {
             std::cout << "Failed to draw child (Null pointer)" << std::endl;
+            continue;
+        }
 
-        else if (c->IsVisible())
+        if (c->IsVisible())
             c->Draw(window);
     }
 }
@@ -401,6 +397,11 @@ void Object::RemoveChild(Object *c)
     *it = this->children.back();
     this->children.pop_back();
     std::cout << "Removed child " << c << " from " << this << " children list" << std::endl;
+}
+
+const std::vector<sf::Event::EventType> Object::GetEventsToSubscribe()
+{
+    return std::vector<sf::Event::EventType>();
 }
 
 void Object::MarkToBeDeleted()

@@ -12,6 +12,11 @@ public:
         this->rectangle.setFillColor(sf::Color::Green);
     }
 
+    const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
+    {
+        return std::vector<sf::Event::EventType>{sf::Event::KeyPressed};
+    }
+
     void OnEvent(sf::Event event) override
     {
         if (event.type == sf::Event::KeyPressed)

@@ -21,7 +21,7 @@ void Game::UpdateEvents()
     while (this->mainWindow.pollEvent(this->event))
     {
         // Update the events from the active scene's objects
-        this->sceneManager.UpdateEvents(this->event);
+        this->sceneManager.OnEvent(this->event);
 
         // Close event
         if (this->event.type == sf::Event::Closed)

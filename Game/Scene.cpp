@@ -18,6 +18,55 @@ sf::Vector2f SceneBuilder::GetCameraCenter()
     return this->cameraCenter;
 }
 
+void Scene::SubscribeToEvents(Object *o)
+{
+    // Verify the object to exist
+    if (!o)
+    {
+        std::cout << "Failed to subscribe object to events (Null pointer)" << std::endl;
+        return;
+    }
+
+    // Get the events that the object is subscribed to
+    const std::vector<sf::Event::EventType> events = o->GetEventsToSubscribe();
+
+    // Subscribe the object to the events
+    for (sf::Event::EventType event : events)
+    {
+        this->eventSubscribers[event].push_back(o);
+        std::cout << "Subscribed object " << o << " to event " << event << std::endl;
+    }
+}
+
+void Scene::UnsubscribeFromEvents(Object *o)
+{
+    if (!o)
+    {
+        std::cout << "Failed to unsubscribe object from events (Null pointer)" << std::endl;
+        return;
+    }
+
+    // Get the events that the object is subscribed to
+    const std::vector<sf::Event::EventType> events = o->GetEventsToSubscribe();
+
+    // Unsubscribe the object from the events
+    for (sf::Event::EventType event : events)
+    {
+        // Find the object in the list of subscribers for the event and verify it to exist
+        auto it = std::find(this->eventSubscribers[event].begin(), this->eventSubscribers[event].end(), o);
+        if (it == this->eventSubscribers[event].end())
+        {
+            std::cout << "Failed to unsubscribe object from event " << event << " (object not found in subscribers list)" << std::endl;
+            continue;
+        }
+
+        // Remove the object from the list of subscribers for the event
+        *it = this->eventSubscribers[event].back();
+        this->eventSubscribers[event].pop_back();
+        std::cout << "Unsubscribed object " << o << " from event " << event << std::endl;
+    }
+}
+
 Scene::Scene(sf::Vector2f cameraSize, sf::Vector2f cameraCenter)
 {
     // Initialize Camera
@@ -61,7 +110,6 @@ void Scene::AddObject(Object *o)
         if (!p)
         {
             std::cout << "Failed to add child object (Null pointer to parent)";
-            delete o;
             return;
         }
 
@@ -73,6 +121,9 @@ void Scene::AddObject(Object *o)
         this->objects.push_back(o);
         std::cout << "Added object " << o << " to scene " << this << std::endl;
     }
+
+    // Subscribe the object to the events that it wants to react to
+    this->SubscribeToEvents(o);
 }
 
 void Scene::RemoveObject(Object *o)
@@ -112,43 +163,50 @@ void Scene::DeleteObjects(bool removeFromScene)
 
         // Verify object to exist
         if (!o)
-            std::cout << "Failed to remove object (Null pointer)" << std::endl;
-        else
         {
-            if (removeFromScene)
+            std::cout << "Failed to remove object (Null pointer)" << std::endl;
+            continue;
+        }
+
+        if (removeFromScene)
+        {
+            // If the object is a child, it's removed from its parent
+            if (o->IsChild())
             {
-                // If the object is a child, it's removed from its parent
-                if (o->IsChild())
+                // Verify if parent exists
+                Object *p = o->GetParent();
+                if (!p)
                 {
-                    // Verify if parent exists
-                    Object *p = o->GetParent();
-                    if (!p)
-                        std::cout << "Failed to remove child object (Null pointer to parent)" << std::endl;
-
-                    // If the parent is not marked to be deleted, the child is removed from the parent
-                    else if (!p->IsMarkedToBeDeleted())
-                        p->RemoveChild(o);
+                    std::cout << "Failed to remove child object (Null pointer to parent)" << std::endl;
+                    continue;
                 }
-                // If the object is not a child, it's removed from the active scene
-                else
+
+                // If the parent is not marked to be deleted, the child is removed from the parent
+                if (!p->IsMarkedToBeDeleted())
+                    p->RemoveChild(o);
+            }
+            // If the object is not a child, it's removed from the active scene
+            else
+            {
+                // Find the object in the scene and verify it to exist
+                auto it = std::find(this->objects.begin(), this->objects.end(), o);
+                if (it == this->objects.end())
                 {
-                    // Find the object in the scene and verify it to exist
-                    auto it = std::find(this->objects.begin(), this->objects.end(), o);
-                    if (it == this->objects.end())
-                        std::cout << "Failed to remove object from scene " << this << " (object not found in scene)" << std::endl;
-
-                    // Remove the object from the scene
-                    else
-                    {
-                        *it = this->objects.back();
-                        this->objects.pop_back();
-                        std::cout << "Removed object " << o << " from scene " << this << std::endl;
-                    }
+                    std::cout << "Failed to remove object from scene " << this << " (object not found in scene)" << std::endl;
+                    continue;
                 }
+
+                // Remove the object from the scene
+                *it = this->objects.back();
+                this->objects.pop_back();
+                std::cout << "Removed object " << o << " from scene " << this << std::endl;
             }
 
-            delete o;
+            // Unsubscribe the object from the events that it was subscribed to
+            this->UnsubscribeFromEvents(o);
         }
+
+        delete o;
     }
 
     objectsToDelete.clear();
@@ -156,14 +214,44 @@ void Scene::DeleteObjects(bool removeFromScene)
 
 void Scene::OnEvent(sf::Event event)
 {
-    for (Object *o : this->objects)
+    for (Object *o : this->eventSubscribers[event.type])
     {
         // Verify the object to exist
         if (!o)
-            std::cout << "Failed to call object method (Null pointer)" << std::endl;
+        {
+            std::cout << "Failed to call object OnEvent (Null pointer)" << std::endl;
+            continue;
+        }
 
-        else if (o->IsActive())
-            o->OnEvent(event);
+        if (!o->IsActive())
+            continue;
+
+        if (o->IsChild())
+        {
+            bool active = true;
+            Object *aux = o;
+            do
+            {
+                // Verify if parent exists
+                Object *p = aux->GetParent();
+                if (!p)
+                {
+                    std::cout << "Failed to call child OnEvent (Null pointer to parent)" << std::endl;
+                    active = false;
+                }
+                else
+                {
+                    active = p->IsActive();
+                    aux = p;
+                }
+
+            } while (aux->IsChild() && active);
+
+            if (!active)
+                continue;
+        }
+
+        o->OnEvent(event);
     }
 }
 
@@ -173,9 +261,12 @@ void Scene::Update()
     {
         // Verify the object to exist
         if (!o)
+        {
             std::cout << "Failed to update object (Null pointer)" << std::endl;
+            continue;
+        }
 
-        else if (o->IsActive())
+        if (o->IsActive())
             o->Update();
     }
 }
@@ -186,9 +277,12 @@ void Scene::Draw(sf::RenderWindow &window)
     {
         // Verify the object to exist
         if (!o)
+        {
             std::cout << "Failed to draw object (Null pointer)" << std::endl;
+            continue;
+        }
 
-        else if (o->IsVisible())
+        if (o->IsVisible())
             o->Draw(window);
     }
 }
@@ -290,7 +384,7 @@ void SceneManager::DeleteObjects()
     this->activeScene->DeleteObjects();
 }
 
-void SceneManager::UpdateEvents(sf::Event event)
+void SceneManager::OnEvent(sf::Event event)
 {
     // Verify the active scene to exist
     if (!this->activeScene)

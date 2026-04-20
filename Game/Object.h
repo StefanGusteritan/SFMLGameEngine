@@ -80,7 +80,6 @@ public:
 
     // Reacts to events
     virtual void OnEvent(sf::Event event);
-
     // Update the object each frame
     virtual void Update();
     // Draw the object (if it's drawable, else it does nothing)
@@ -110,6 +109,9 @@ public:
     void AddChild(Object *c);
     // Remove a child from its list of children
     void RemoveChild(Object *c);
+
+    // Return a list with the events that the object is subscribed to
+    virtual const std::vector<sf::Event::EventType> GetEventsToSubscribe();
 
     // Mark the object to be deleted at the end of the frame
     void MarkToBeDeleted();

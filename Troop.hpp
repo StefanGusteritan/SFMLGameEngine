@@ -31,6 +31,11 @@ public:
         this->rectangle.setOrigin(size / 2, size / 2);
     }
 
+    const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
+    {
+        return std::vector<sf::Event::EventType>{sf::Event::KeyPressed, sf::Event::MouseButtonPressed};
+    }
+
     void OnEvent(sf::Event event) override
     {
         if (event.type == sf::Event::KeyPressed)

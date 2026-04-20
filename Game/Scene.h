@@ -12,6 +12,13 @@ private:
     // Object that need to be deleted
     std::vector<Object *> objectsToDelete;
 
+    // The objects that are subscribed to each event type
+    std::unordered_map<sf::Event::EventType, std::vector<Object *>> eventSubscribers;
+    // Subscribe an object to the events that wants to react to
+    void SubscribeToEvents(Object *o);
+    // Unsubscribe an object from the events that it was subscribed to
+    void UnsubscribeFromEvents(Object *o);
+
 public:
     // Constructor
     Scene(sf::Vector2f cameraSize, sf::Vector2f cameraCenter);
@@ -96,7 +103,7 @@ public:
     void DeleteObjects();
 
     // Reacts to events from the active scene's objects
-    void UpdateEvents(sf::Event event);
+    void OnEvent(sf::Event event);
     // Update the active scene's objects
     void Update();
     // Draw the active scene's objects
