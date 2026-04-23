@@ -2,10 +2,14 @@
 #include <iostream>
 #include <math.h>
 #include <vector>
+#include <string>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+
+// Class that represents a scene, it holds the objects in the scene and the camera
+class Scene;
 
 // Base Object class that all objects in the game will inherit from
 // The object is a base instance of the game it has a position, rotation, scale
@@ -16,10 +20,26 @@
 class Object
 {
 private:
+    // The scene that the object is in
+    Scene *scene;
+
+    // Name of the object (used for debugging)
+    std::string name;
+    // Layer of the object (objects with higher layers are drawn on top of objects with lower layers)
+    int layer;
+
+    // Active state of the object (if it's false the update function will not be called)
+    bool active;
+    // Visible state of the object (if it's false the draw function will not be called)
+    bool visible;
+
     // Parent of the object (if it has one)
     Object *parent;
     // True if the object has a parent
     bool hasParent;
+
+    // Children of the object
+    std::vector<Object *> children;
 
     // Transform of the object
     // Global transform
@@ -31,18 +51,18 @@ private:
     float rotation;
     sf::Vector2f scale;
 
-    // Active state of the object (if it's false the update function will not be called)
-    bool active;
-    // Visible state of the object (if it's false the draw function will not be called)
-    bool visible;
-
-    // Children of the object
-    std::vector<Object *> children;
-
     // True if the object is marked to be deleted (if it's true the object will be deleted at the end of the frame)
     bool toBeDeleted;
 
 protected:
+    //  Set the layer of the object
+    void SetLayer(int newLayer);
+
+    // Set the active state (if it's false the update function will not be called)
+    void SetActive(bool activeState);
+    // Set the visibility of the object
+    void SetVisible(bool visibility);
+
     // Changes the local position of the Object
     void SetPosition(sf::Vector2f newPosition);
     // Moves the object from it's position in a direction with a specified speed
@@ -56,22 +76,18 @@ protected:
     // Changes the local scale of the Object
     void SetScale(sf::Vector2f newScale);
 
-    // Set the active state (if it's false the update function will not be called)
-    void SetActive(bool a);
-    // Set the visibility of the object
-    void SetVisible(bool visibility);
-
 public:
     // Constructor
-    Object();
-    Object(Object *p);
-    Object(bool activeState);
-    Object(bool activeState, Object *p);
-    Object(bool activeState, bool visibility);
-    Object(bool activeState, bool visibility, Object *p);
+    Object(Scene *scene);
+    Object(Scene *scene, std::string name);
+    Object(Scene *scene, Object *parent);
+    Object(Scene *scene, std::string name, Object *parent);
 
     // Deconstructor
     virtual ~Object();
+
+    std::string GetName();
+    int GetLayer();
 
     // True if the object is active
     virtual bool IsActive();
@@ -126,12 +142,10 @@ protected:
     sf::Sprite sprite;
 
 public:
-    SpriteObject();
-    SpriteObject(Object *p);
-    SpriteObject(bool activeState);
-    SpriteObject(bool activeState, Object *p);
-    SpriteObject(bool activeState, bool visibility);
-    SpriteObject(bool activeState, bool visibility, Object *p);
+    SpriteObject(Scene *scene);
+    SpriteObject(Scene *scene, std::string name);
+    SpriteObject(Scene *scene, Object *parent);
+    SpriteObject(Scene *scene, std::string name, Object *parent);
 
     // Update object each frame add changes to the sprite
     virtual void Update() override;
@@ -147,12 +161,10 @@ protected:
     sf::Text text;
 
 public:
-    TextObject();
-    TextObject(Object *p);
-    TextObject(bool activeState);
-    TextObject(bool activeState, Object *p);
-    TextObject(bool activeState, bool visibility);
-    TextObject(bool activeState, bool visibility, Object *p);
+    TextObject(Scene *scene);
+    TextObject(Scene *scene, std::string name);
+    TextObject(Scene *scene, Object *parent);
+    TextObject(Scene *scene, std::string name, Object *parent);
 
     // Update object each frame add changes to the convex text
     virtual void Update() override;
@@ -168,12 +180,10 @@ protected:
     sf::CircleShape circle;
 
 public:
-    CircleObject();
-    CircleObject(Object *p);
-    CircleObject(bool activeState);
-    CircleObject(bool activeState, Object *p);
-    CircleObject(bool activeState, bool visibility);
-    CircleObject(bool activeState, bool visibility, Object *p);
+    CircleObject(Scene *scene);
+    CircleObject(Scene *scene, std::string name);
+    CircleObject(Scene *scene, Object *parent);
+    CircleObject(Scene *scene, std::string name, Object *parent);
 
     // Update object each frame add changes to the circle
     virtual void Update() override;
@@ -189,12 +199,10 @@ protected:
     sf::RectangleShape rectangle;
 
 public:
-    RectangleObject();
-    RectangleObject(Object *p);
-    RectangleObject(bool activeState);
-    RectangleObject(bool activeState, Object *p);
-    RectangleObject(bool activeState, bool visibility);
-    RectangleObject(bool activeState, bool visibility, Object *p);
+    RectangleObject(Scene *scene);
+    RectangleObject(Scene *scene, std::string name);
+    RectangleObject(Scene *scene, Object *parent);
+    RectangleObject(Scene *scene, std::string name, Object *parent);
 
     // Update object each frame add changes to the rectangle
     virtual void Update() override;
@@ -210,12 +218,10 @@ protected:
     sf::ConvexShape convexShape;
 
 public:
-    ConvexObject();
-    ConvexObject(Object *p);
-    ConvexObject(bool activeState);
-    ConvexObject(bool activeState, Object *p);
-    ConvexObject(bool activeState, bool visibility);
-    ConvexObject(bool activeState, bool visibility, Object *p);
+    ConvexObject(Scene *scene);
+    ConvexObject(Scene *scene, std::string name);
+    ConvexObject(Scene *scene, Object *parent);
+    ConvexObject(Scene *scene, std::string name, Object *parent);
 
     // Update object each frame add changes to the convex shape
     virtual void Update() override;

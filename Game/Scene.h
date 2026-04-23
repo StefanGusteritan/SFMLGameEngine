@@ -2,10 +2,11 @@
 #include "Object.h"
 #include <functional>
 
-// Class that represents a scene, it holds the objects in the scene and the camera
 class Scene
 {
 private:
+    // Name of the scene (Used for debugging)
+    std::string name;
     // The objects in the scene, if they are active they will be updated every frame
     std::vector<Object *> objects;
 
@@ -21,10 +22,13 @@ private:
 
 public:
     // Constructor
-    Scene(sf::Vector2f cameraSize, sf::Vector2f cameraCenter);
+    Scene(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCenter);
 
     // Deconstructor
     ~Scene();
+
+    // Return the name of the scene
+    std::string GetName();
 
     // Scene camera (defines what region is shown on screen)
     sf::View camera;
@@ -52,6 +56,9 @@ public:
 class SceneBuilder
 {
 private:
+    // The name of the scene
+    std::string name;
+
     // The resolution of the camera
     sf::Vector2f cameraSize;
     // The center point of the camera
@@ -59,10 +66,13 @@ private:
 
 public:
     // Constructor
-    SceneBuilder(sf::Vector2f cameraSize, sf::Vector2f cameraCenter, std::function<void(Scene *)> objects);
+    SceneBuilder(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCenter, std::function<void(Scene *)> objects);
 
     // Creates and adds the specified objects to the created scene
     std::function<void(Scene *)> addObjectsToScene;
+
+    // Returns the scene name
+    std::string GetName();
 
     // Returns the camera size
     sf::Vector2f GetCameraSize();

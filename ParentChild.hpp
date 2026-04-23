@@ -6,7 +6,7 @@ private:
     float size = 100, speed = 20;
 
 public:
-    TestChild(Object *p) : RectangleObject(p)
+    TestChild(Object *p) : RectangleObject("Child", p)
     {
         this->rectangle.setSize(sf::Vector2f(size, size));
         this->rectangle.setFillColor(sf::Color::Green);

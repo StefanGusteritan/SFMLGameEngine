@@ -1,14 +1,15 @@
 #include "Game.h"
 
-Game::Game(sf::VideoMode windowSize, const char *windowTitle, sf::Uint32 windowStyle)
+Game::Game(sf::VideoMode windowSize, const std::string windowTitle, sf::Uint32 windowStyle)
 {
     this->mainWindow.create(windowSize, windowTitle, windowStyle);
-    std::cout << "Game window created with title: " << windowTitle << std::endl;
+    std::cout << "Created: Game" << std::endl;
+    std::cout << "Created: Window with title: " << windowTitle << std::endl;
 }
 
 Game::~Game()
 {
-    std::cout << "Game deleted" << std::endl;
+    std::cout << "Deleted: Game" << std::endl;
 }
 
 const sf::RenderWindow &Game::GetWindow()

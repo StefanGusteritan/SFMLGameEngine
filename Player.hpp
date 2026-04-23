@@ -6,7 +6,7 @@ private:
     float size = 100, speed = 75;
 
 public:
-    Player() : RectangleObject()
+    Player() : RectangleObject("Player")
     {
         this->rectangle.setSize(sf::Vector2f(size, size));
         this->rectangle.setFillColor(sf::Color::Green);

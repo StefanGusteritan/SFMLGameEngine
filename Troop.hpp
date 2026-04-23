@@ -24,7 +24,7 @@ private:
     }
 
 public:
-    Troop() : RectangleObject()
+    Troop() : RectangleObject("Troop")
     {
         this->rectangle.setSize(sf::Vector2f(size, size));
         this->rectangle.setFillColor(sf::Color::White);

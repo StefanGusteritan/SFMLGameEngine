@@ -22,7 +22,7 @@ private:
 
 public:
     // Constructor - Initiates the game window
-    Game(sf::VideoMode windowSize, const char *windowTitle, sf::Uint32 windowStyle);
+    Game(sf::VideoMode windowSize, const std::string windowTitle, sf::Uint32 windowStyle);
 
     // Deconstructor
     ~Game();
