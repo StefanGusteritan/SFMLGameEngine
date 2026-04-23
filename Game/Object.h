@@ -85,8 +85,12 @@ public:
     // Constructor
     Object();
     Object(std::string name);
+    Object(int layer);
     Object(Object *parent);
+    Object(std::string name, int layer);
     Object(std::string name, Object *parent);
+    Object(int layer, Object *parent);
+    Object(std::string name, int layer, Object *parent);
 
     // Deconstructor
     virtual ~Object();
@@ -141,8 +145,12 @@ protected:
 public:
     SpriteObject();
     SpriteObject(std::string name);
+    SpriteObject(int layer);
     SpriteObject(Object *parent);
+    SpriteObject(std::string name, int layer);
     SpriteObject(std::string name, Object *parent);
+    SpriteObject(int layer, Object *parent);
+    SpriteObject(std::string name, int layer, Object *parent);
 };
 
 // Object that has a text
@@ -160,8 +168,12 @@ protected:
 public:
     TextObject();
     TextObject(std::string name);
+    TextObject(int layer);
     TextObject(Object *parent);
+    TextObject(std::string name, int layer);
     TextObject(std::string name, Object *parent);
+    TextObject(int layer, Object *parent);
+    TextObject(std::string name, int layer, Object *parent);
 };
 
 // Object that has a circle shape
@@ -179,8 +191,12 @@ protected:
 public:
     CircleObject();
     CircleObject(std::string name);
+    CircleObject(int layer);
     CircleObject(Object *parent);
+    CircleObject(std::string name, int layer);
     CircleObject(std::string name, Object *parent);
+    CircleObject(int layer, Object *parent);
+    CircleObject(std::string name, int layer, Object *parent);
 };
 
 // Object that has a rectangle shape
@@ -198,8 +214,12 @@ protected:
 public:
     RectangleObject();
     RectangleObject(std::string name);
+    RectangleObject(int layer);
     RectangleObject(Object *parent);
+    RectangleObject(std::string name, int layer);
     RectangleObject(std::string name, Object *parent);
+    RectangleObject(int layer, Object *parent);
+    RectangleObject(std::string name, int layer, Object *parent);
 };
 
 // Object that has a convex shape
@@ -217,6 +237,10 @@ protected:
 public:
     ConvexObject();
     ConvexObject(std::string name);
+    ConvexObject(int layer);
     ConvexObject(Object *parent);
+    ConvexObject(std::string name, int layer);
     ConvexObject(std::string name, Object *parent);
+    ConvexObject(int layer, Object *parent);
+    ConvexObject(std::string name, int layer, Object *parent);
 };

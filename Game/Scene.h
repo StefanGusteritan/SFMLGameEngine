@@ -8,7 +8,6 @@ private:
     // Name of the scene (Used for debugging)
     const std::string name;
     // The objects in the scene, if they are active they will be updated every frame
-    std::vector<Object *> objects;
     std::map<int, std::vector<Object *>> layers;
 
     // Object that need to be deleted
@@ -26,11 +25,13 @@ private:
 
     // Add object to scene or if it's a child add it to its parent
     void AddObject(Object *o);
-    void AddObject(int layer, Object *o);
     // Remove object from scene
     void RemoveObject(Object *o);
     // Delete the object that are not used (object from the list)
     void DeleteObjects(bool removeFromScene = true);
+
+    // Set an object's layer
+    void SetObjectLayer(int layer, Object *o);
 
     // Reacts to events, calls each active object's method
     void OnEvent(sf::Event event);
@@ -52,9 +53,6 @@ public:
 
     // Return the name of the scene
     std::string GetName();
-
-    // Returns a list with the objects in the scene
-    const std::vector<Object *> &GetObjects();
 };
 
 // Class that holds the properties for building a Scene
@@ -122,7 +120,6 @@ public:
 
     // Adds a new object in the active scene
     void AddObject(Object *o);
-    void AddObject(int layer, Object *o);
     // Remove objects from the scene and parent and add them to the list of Objects to Delete
     void RemoveObject(Object *o);
     // Delete the objects that are marked to be deleted

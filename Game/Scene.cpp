@@ -40,7 +40,8 @@ void Scene::SubscribeToEvents(Object *o)
     for (sf::Event::EventType event : events)
     {
         this->eventSubscribers[event].push_back(o);
-        std::cout << "Subscribed: " << o->name << '-' << o << " to event: " << event << std::endl;
+        std::cout << "Subscribed: " << o->name << '-' << o
+                  << " to event: " << event << std::endl;
     }
 }
 
@@ -62,14 +63,17 @@ void Scene::UnsubscribeFromEvents(Object *o)
         auto it = std::find(this->eventSubscribers[event].begin(), this->eventSubscribers[event].end(), o);
         if (it == this->eventSubscribers[event].end())
         {
-            std::cout << "Failed to unsubscribe: " << o->name << '-' << o << " from event: " << event << " (Not found in subscribers list)" << std::endl;
+            std::cout << "Failed to unsubscribe: " << o->name << '-' << o
+                      << " from event: " << event
+                      << " (Not found in subscribers list)" << std::endl;
             continue;
         }
 
         // Remove the object from the list of subscribers for the event
         *it = this->eventSubscribers[event].back();
         this->eventSubscribers[event].pop_back();
-        std::cout << "Unsubscribed: " << o->name << '-' << o << " from event: " << event << std::endl;
+        std::cout << "Unsubscribed: " << o->name << '-' << o
+                  << " from event: " << event << std::endl;
     }
 }
 
@@ -85,8 +89,9 @@ Scene::Scene(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCente
 Scene::~Scene()
 {
     // Mark all objects to be deleted and add them to the list to be deleted
-    for (Object *o : this->objects)
-        this->RemoveObject(o);
+    for (auto layer : layers)
+        for (Object *o : layer.second)
+            this->RemoveObject(o);
 
     // Delete the objects that are marked to be deleted
     this->DeleteObjects(false);
@@ -99,17 +104,13 @@ std::string Scene::GetName()
     return this->name;
 }
 
-const std::vector<Object *> &Scene::GetObjects()
-{
-    return this->objects;
-}
-
 void Scene::AddObject(Object *o)
 {
     // Verify the object to exist
     if (!o)
     {
-        std::cout << "Failed to add object to: " << this->name << '-' << this << " objects list (NULL pointer)" << std::endl;
+        std::cout << "Failed to add object to: " << this->name << '-' << this
+                  << " objects list: (NULL pointer)" << std::endl;
         return;
     }
 
@@ -120,17 +121,32 @@ void Scene::AddObject(Object *o)
         Object *p = o->parent;
         if (!p)
         {
-            std::cout << "Failed to add: " << o->name << '-' << o << "to children list (NULL pointer to parent)";
+            std::cout << "Failed to add: " << o->name << '-' << o
+                      << " to children list (NULL pointer to parent) - Adding to scene instead";
+
+            this->layers[o->layer].push_back(o);
+            std::cout << "Added: " << o->name << '-' << o
+                      << " to: " << this->name << '-' << this
+                      << " objects list-layer:" << o->layer << std::endl;
             return;
         }
 
+        if (p->layer != o->layer)
+            std::cout << o->name << '-' << o
+                      << " cannot be on a different layer than its parent: " << p->name << '-' << p
+                      << " Setting layer from: " << o->layer
+                      << " to: " << p->layer << std::endl;
+
+        o->layer = p->layer;
         p->AddChild(o);
     }
     // If the object is not a child add it to the scene
     else
     {
-        this->objects.push_back(o);
-        std::cout << "Added: " << o->name << '-' << o << " to: " << this->name << '-' << this << " objects list" << std::endl;
+        this->layers[o->layer].push_back(o);
+        std::cout << "Added: " << o->name << '-' << o
+                  << " to: " << this->name << '-' << this
+                  << " objects list-layer: " << o->layer << std::endl;
     }
 
     // Subscribe the object to the events that it wants to react to
@@ -142,7 +158,8 @@ void Scene::RemoveObject(Object *o)
     // Verify the object to exist
     if (!o)
     {
-        std::cout << "Failed to remove object from: " << this->name << '-' << this << " (NULL pointer)" << std::endl;
+        std::cout << "Failed to remove object from: " << this->name << '-' << this
+                  << " (NULL pointer)" << std::endl;
         return;
     }
 
@@ -154,7 +171,8 @@ void Scene::RemoveObject(Object *o)
     // Verify if the object is already marked to be deleted
     if (o->toBeDeleted)
     {
-        std::cout << "Failed to add: " << o->name << '-' << o << " to delete list (Already marked to be deleted)" << std::endl;
+        std::cout << "Failed to add: " << o->name << '-' << o
+                  << " to delete list (Already marked to be deleted)" << std::endl;
         return;
     }
 
@@ -162,7 +180,8 @@ void Scene::RemoveObject(Object *o)
     o->toBeDeleted = true;
     // Add the object to the delete list
     this->objectsToDelete.push_back(o);
-    std::cout << "Added: " << o->name << '-' << o << " to delete list" << std::endl;
+    std::cout << "Added: " << o->name << '-' << o
+              << " to delete list" << std::endl;
 }
 
 void Scene::DeleteObjects(bool removeFromScene)
@@ -189,7 +208,9 @@ void Scene::DeleteObjects(bool removeFromScene)
                 Object *p = o->parent;
                 if (!p)
                 {
-                    std::cout << "Failed to remove: " << o->name << '-' << o << " from children list (NULL pointer to parent)" << std::endl;
+                    std::cout << "Failed to remove: " << o->name << '-' << o
+                              << " from children list (NULL pointer to parent)" << std::endl;
+                    delete o;
                     continue;
                 }
 
@@ -201,17 +222,24 @@ void Scene::DeleteObjects(bool removeFromScene)
             else
             {
                 // Find the object in the scene and verify it to exist
-                auto it = std::find(this->objects.begin(), this->objects.end(), o);
-                if (it == this->objects.end())
+                int l = o->layer;
+                auto it = std::find(this->layers[l].begin(), this->layers[l].end(), o);
+                if (it == this->layers[l].end())
                 {
-                    std::cout << "Failed to remove: " << o->name << '-' << o << " from: " << this->name << '-' << this << " objects list (Not found in list)" << std::endl;
+                    std::cout << "Failed to remove: " << o->name << '-' << o
+                              << " from: " << this->name << '-' << this
+                              << " objects list-layer: " << l
+                              << " (Not found in list)" << std::endl;
+                    delete o;
                     continue;
                 }
 
                 // Remove the object from the scene
-                *it = this->objects.back();
-                this->objects.pop_back();
-                std::cout << "Removed: " << o->name << '-' << o << " from: " << this->name << '-' << this << " objects list" << std::endl;
+                *it = this->layers[l].back();
+                this->layers[l].pop_back();
+                std::cout << "Removed: " << o->name << '-' << o
+                          << " from: " << this->name << '-' << this
+                          << " objects list-layer: " << l << std::endl;
             }
 
             // Unsubscribe the object from the events that it was subscribed to
@@ -269,34 +297,36 @@ void Scene::OnEvent(sf::Event event)
 
 void Scene::Update()
 {
-    for (Object *o : this->objects)
-    {
-        // Verify the object to exist
-        if (!o)
+    for (auto objects : layers)
+        for (Object *o : objects.second)
         {
-            std::cout << "Failed to update object (NULL pointer)" << std::endl;
-            continue;
-        }
+            // Verify the object to exist
+            if (!o)
+            {
+                std::cout << "Failed to update object (NULL pointer)" << std::endl;
+                continue;
+            }
 
-        if (o->active)
-            o->Update();
-    }
+            if (o->active)
+                o->Update();
+        }
 }
 
 void Scene::Draw(sf::RenderWindow &window)
 {
-    for (Object *o : this->objects)
-    {
-        // Verify the object to exist
-        if (!o)
+    for (auto objects : layers)
+        for (Object *o : objects.second)
         {
-            std::cout << "Failed to draw object (NULL pointer)" << std::endl;
-            continue;
-        }
+            // Verify the object to exist
+            if (!o)
+            {
+                std::cout << "Failed to draw object (NULL pointer)" << std::endl;
+                continue;
+            }
 
-        if (o->visible)
-            o->Draw(window);
-    }
+            if (o->visible)
+                o->Draw(window);
+        }
 }
 
 SceneManager::SceneManager()
@@ -354,7 +384,8 @@ void SceneManager::SetActiveScene()
     nextScene = nullptr;
     this->changingScene = false;
 
-    std::cout << "Active scene is set to: " << activeScene->name << '-' << activeScene << std::endl;
+    std::cout << "Active scene is set to: "
+              << activeScene->name << '-' << activeScene << std::endl;
 
     // Deletes the previous scene if it exists
     if (previousScene)

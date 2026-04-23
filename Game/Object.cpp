@@ -20,13 +20,36 @@ Object::Object() : name("Object"), hasParent(false), parent(nullptr)
     this->globalRotation = 0;
     this->globalScale = sf::Vector2f(1, 1);
 
-    std::cout << "Created: " << this->name << '-' << this << " with no parent" << std::endl;
+    std::cout << "Created: " << this->name << '-' << this
+              << " with no parent" << std::endl;
 }
 
 Object::Object(std::string name) : name(name), hasParent(false), parent(nullptr)
 {
     // Initialize default values
     this->layer = 0;
+    this->active = true;
+    this->visible = true;
+    this->toBeDeleted = false;
+
+    // Initialize local transform
+    this->position = sf::Vector2f(0, 0);
+    this->rotation = 0;
+    this->scale = sf::Vector2f(1, 1);
+
+    // Initialize global transform
+    this->globalPosition = sf::Vector2f(0, 0);
+    this->globalRotation = 0;
+    this->globalScale = sf::Vector2f(1, 1);
+
+    std::cout << "Created: " << this->name << '-' << this
+              << " with no parent" << std::endl;
+}
+
+Object::Object(int layer) : name("Object"), hasParent(false), parent(nullptr)
+{
+    // Initialize default values
+    this->layer = layer;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -67,7 +90,8 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
         this->globalRotation = 0;
         this->globalScale = sf::Vector2f(1, 1);
 
-        std::cout << "Created: " << this->name << '-' << this << " with no parent (NULL pointer)" << std::endl;
+        std::cout << "Created: " << this->name << '-' << this
+                  << " with no parent (NULL pointer)" << std::endl;
     }
     else
     {
@@ -78,8 +102,31 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
         this->globalRotation = this->parent->globalRotation;
         this->globalScale = this->parent->globalScale;
 
-        std::cout << "Created: " << this->name << '-' << this << " with parent: " << parent->name << '-' << parent << std::endl;
+        std::cout << "Created: " << this->name << '-' << this
+                  << " with parent: " << parent->name << '-' << parent << std::endl;
     }
+}
+
+Object::Object(std::string name, int layer) : name(name), hasParent(false), parent(nullptr)
+{
+    // Initialize default values
+    this->layer = layer;
+    this->active = true;
+    this->visible = true;
+    this->toBeDeleted = false;
+
+    // Initialize local transform
+    this->position = sf::Vector2f(0, 0);
+    this->rotation = 0;
+    this->scale = sf::Vector2f(1, 1);
+
+    // Initialize global transform
+    this->globalPosition = sf::Vector2f(0, 0);
+    this->globalRotation = 0;
+    this->globalScale = sf::Vector2f(1, 1);
+
+    std::cout << "Created: " << this->name << '-' << this
+              << " with no parent" << std::endl;
 }
 
 Object::Object(std::string name, Object *parent) : name(name), hasParent(parent != nullptr), parent(parent)
@@ -105,7 +152,8 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
         this->globalRotation = 0;
         this->globalScale = sf::Vector2f(1, 1);
 
-        std::cout << "Created: " << this->name << '-' << this << " with no parent (NULL pointer)" << std::endl;
+        std::cout << "Created: " << this->name << '-' << this
+                  << " with no parent (NULL pointer)" << std::endl;
     }
     else
     {
@@ -116,7 +164,88 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
         this->globalRotation = this->parent->globalRotation;
         this->globalScale = this->parent->globalScale;
 
-        std::cout << "Created: " << this->name << '-' << this << " with parent: " << parent->name << '-' << parent << std::endl;
+        std::cout << "Created: " << this->name << '-' << this
+                  << " with parent: " << parent->name << '-' << parent << std::endl;
+    }
+}
+
+Object::Object(int layer, Object *parent) : name("Object"), hasParent(parent != nullptr), parent(parent)
+{
+    // Initialize default values
+    this->layer = layer;
+    this->active = true;
+    this->visible = true;
+    this->toBeDeleted = false;
+
+    // Initialize local transform
+    this->position = sf::Vector2f(0, 0);
+    this->rotation = 0;
+    this->scale = sf::Vector2f(1, 1);
+
+    // Verify the parent to exist
+    if (!parent)
+    {
+        // If the parent doesn't exist the object is created without a parent
+
+        // Initialize global transform
+        this->globalPosition = sf::Vector2f(0, 0);
+        this->globalRotation = 0;
+        this->globalScale = sf::Vector2f(1, 1);
+
+        std::cout << "Created: " << this->name << '-' << this
+                  << " with no parent (NULL pointer)" << std::endl;
+    }
+    else
+    {
+        // If the parent exists the object is created as a child of the parent
+
+        // Initialize global transform based on parent
+        this->globalPosition = this->parent->globalPosition;
+        this->globalRotation = this->parent->globalRotation;
+        this->globalScale = this->parent->globalScale;
+
+        std::cout << "Created: " << this->name << '-' << this
+                  << " with parent: " << parent->name << '-' << parent << std::endl;
+    }
+}
+
+Object::Object(std::string name, int layer, Object *parent) : name(name), hasParent(parent != nullptr), parent(parent)
+{
+    // Initialize default values
+    this->layer = layer;
+    this->active = true;
+    this->visible = true;
+    this->toBeDeleted = false;
+
+    // Initialize local transform
+    this->position = sf::Vector2f(0, 0);
+    this->rotation = 0;
+    this->scale = sf::Vector2f(1, 1);
+
+    // Verify the parent to exist
+    if (!parent)
+    {
+        // If the parent doesn't exist the object is created without a parent
+
+        // Initialize global transform
+        this->globalPosition = sf::Vector2f(0, 0);
+        this->globalRotation = 0;
+        this->globalScale = sf::Vector2f(1, 1);
+
+        std::cout << "Created: " << this->name << '-' << this
+                  << " with no parent (NULL pointer)" << std::endl;
+    }
+    else
+    {
+        // If the parent exists the object is created as a child of the parent
+
+        // Initialize global transform based on parent
+        this->globalPosition = this->parent->globalPosition;
+        this->globalRotation = this->parent->globalRotation;
+        this->globalScale = this->parent->globalScale;
+
+        std::cout << "Created: " << this->name << '-' << this
+                  << " with parent: " << parent->name << '-' << parent << std::endl;
     }
 }
 
@@ -189,7 +318,7 @@ void Object::OnEvent(sf::Event event)
 
 void Object::Update()
 {
-    if (this->hasParent)
+    if (this->hasParent && parent != nullptr)
     {
         // Updates the global transform based of the parent transform
 
@@ -293,7 +422,8 @@ Object *Object::GetParent()
     // Verify the object to have a parent
     if (!this->hasParent)
     {
-        std::cout << "Failed to get parent of: " << this->name << '-' << this << " (Has no parent)" << std::endl;
+        std::cout << "Failed to get parent of: " << this->name << '-' << this
+                  << " (Has no parent)" << std::endl;
         return nullptr;
     }
 
@@ -315,7 +445,9 @@ void Object::AddChild(Object *c)
     }
 
     this->children.push_back(c);
-    std::cout << "Added: " << c->name << '-' << c << " to: " << this->name << '-' << this << " children list" << std::endl;
+    std::cout << "Added: " << c->name << '-' << c
+              << " to: " << this->name << '-' << this
+              << " children list" << std::endl;
 }
 
 void Object::RemoveChild(Object *c)
@@ -331,14 +463,18 @@ void Object::RemoveChild(Object *c)
     auto it = std::find(this->children.begin(), this->children.end(), c);
     if (it == this->children.end())
     {
-        std::cout << "Failed to remove: " << c->name << '-' << c << " from: " << this->name << '-' << this << " children list (Not found in list)" << std::endl;
+        std::cout << "Failed to remove: " << c->name << '-' << c
+                  << " from: " << this->name << '-' << this
+                  << " children list (Not found in list)" << std::endl;
         return;
     }
 
     // Remove the child from the list of children
     *it = this->children.back();
     this->children.pop_back();
-    std::cout << "Removed: " << c->name << '-' << c << " from: " << this->name << '-' << this << " children list" << std::endl;
+    std::cout << "Removed: " << c->name << '-' << c
+              << " from: " << this->name << '-' << this
+              << " children list" << std::endl;
 }
 
 const std::vector<sf::Event::EventType> Object::GetEventsToSubscribe()
@@ -359,10 +495,22 @@ SpriteObject::SpriteObject() : Object()
 SpriteObject::SpriteObject(std::string name) : Object(name)
 {
 }
+SpriteObject::SpriteObject(int layer) : Object(layer)
+{
+}
 SpriteObject::SpriteObject(Object *parent) : Object(parent)
 {
 }
+SpriteObject::SpriteObject(std::string name, int layer) : Object(name, layer)
+{
+}
 SpriteObject::SpriteObject(std::string name, Object *parent) : Object(name, parent)
+{
+}
+SpriteObject::SpriteObject(int layer, Object *parent) : Object(layer, parent)
+{
+}
+SpriteObject::SpriteObject(std::string name, int layer, Object *parent) : Object(name, layer, parent)
 {
 }
 
@@ -394,10 +542,22 @@ TextObject::TextObject() : Object()
 TextObject::TextObject(std::string name) : Object(name)
 {
 }
+TextObject::TextObject(int layer) : Object(layer)
+{
+}
 TextObject::TextObject(Object *parent) : Object(parent)
 {
 }
+TextObject::TextObject(std::string name, int layer) : Object(name, layer)
+{
+}
 TextObject::TextObject(std::string name, Object *parent) : Object(name, parent)
+{
+}
+TextObject::TextObject(int layer, Object *parent) : Object(layer, parent)
+{
+}
+TextObject::TextObject(std::string name, int layer, Object *parent) : Object(name, layer, parent)
 {
 }
 
@@ -429,10 +589,22 @@ CircleObject::CircleObject() : Object()
 CircleObject::CircleObject(std::string name) : Object(name)
 {
 }
+CircleObject::CircleObject(int layer) : Object(layer)
+{
+}
 CircleObject::CircleObject(Object *parent) : Object(parent)
 {
 }
+CircleObject::CircleObject(std::string name, int layer) : Object(name, layer)
+{
+}
 CircleObject::CircleObject(std::string name, Object *parent) : Object(name, parent)
+{
+}
+CircleObject::CircleObject(int layer, Object *parent) : Object(layer, parent)
+{
+}
+CircleObject::CircleObject(std::string name, int layer, Object *parent) : Object(name, layer, parent)
 {
 }
 
@@ -464,10 +636,22 @@ RectangleObject::RectangleObject() : Object()
 RectangleObject::RectangleObject(std::string name) : Object(name)
 {
 }
+RectangleObject::RectangleObject(int layer) : Object(layer)
+{
+}
 RectangleObject::RectangleObject(Object *parent) : Object(parent)
 {
 }
+RectangleObject::RectangleObject(std::string name, int layer) : Object(name, layer)
+{
+}
 RectangleObject::RectangleObject(std::string name, Object *parent) : Object(name, parent)
+{
+}
+RectangleObject::RectangleObject(int layer, Object *parent) : Object(layer, parent)
+{
+}
+RectangleObject::RectangleObject(std::string name, int layer, Object *parent) : Object(name, layer, parent)
 {
 }
 
@@ -496,13 +680,25 @@ void RectangleObject::Draw(sf::RenderWindow &window)
 ConvexObject::ConvexObject() : Object()
 {
 }
-ConvexObject::ConvexObject(Object *parent) : Object(parent)
-{
-}
 ConvexObject::ConvexObject(std::string name) : Object(name)
 {
 }
+ConvexObject::ConvexObject(int layer) : Object(layer)
+{
+}
+ConvexObject::ConvexObject(Object *parent) : Object(parent)
+{
+}
+ConvexObject::ConvexObject(std::string name, int layer) : Object(name, layer)
+{
+}
 ConvexObject::ConvexObject(std::string name, Object *parent) : Object(name, parent)
+{
+}
+ConvexObject::ConvexObject(int layer, Object *parent) : Object(layer, parent)
+{
+}
+ConvexObject::ConvexObject(std::string name, int layer, Object *parent) : Object(name, layer, parent)
 {
 }
 

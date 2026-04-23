@@ -3,7 +3,7 @@
 class TestChild : public RectangleObject
 {
 public:
-    TestChild(Object *p) : RectangleObject("Child", p)
+    TestChild(Object *p) : RectangleObject("Child", 1, p)
     {
         this->rectangle.setSize(sf::Vector2f(size, size));
         this->rectangle.setFillColor(sf::Color::Green);
@@ -31,7 +31,7 @@ private:
 class TestParent : public RectangleObject
 {
 public:
-    TestParent() : RectangleObject()
+    TestParent() : RectangleObject(2)
     {
         this->rectangle.setSize(sf::Vector2f(size, size));
         this->rectangle.setFillColor(sf::Color::Blue);

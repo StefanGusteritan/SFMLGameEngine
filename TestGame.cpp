@@ -10,7 +10,7 @@ SceneBuilder playerScene("Player_Scene",
                          sf::Vector2f(960, 540),
                          []()
                          {
-                           return std::vector<Object *>{new Player};
+                           return std::vector<Object *>{new Player(1), new Player(2)};
                          });
 
 SceneBuilder troopScene("Troop_Scene",
