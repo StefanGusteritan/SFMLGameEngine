@@ -2,7 +2,7 @@
 
 int main()
 {
-    game.sceneManager.ChangeScene(playerScene);
+    game.sceneManager.ChangeScene(parentChildScene);
 
     game.Run();
 

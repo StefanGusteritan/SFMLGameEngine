@@ -1,17 +1,21 @@
 #pragma once
 #include "Object.h"
-#include <functional>
 
+// Class that represents a scene, it holds the objects in the scene and the camera
 class Scene
 {
 private:
     // Name of the scene (Used for debugging)
-    std::string name;
+    const std::string name;
     // The objects in the scene, if they are active they will be updated every frame
     std::vector<Object *> objects;
+    std::map<int, std::vector<Object *>> layers;
 
     // Object that need to be deleted
     std::vector<Object *> objectsToDelete;
+
+    // Scene camera (defines what region is shown on screen)
+    sf::View camera;
 
     // The objects that are subscribed to each event type
     std::unordered_map<sf::Event::EventType, std::vector<Object *>> eventSubscribers;
@@ -20,23 +24,9 @@ private:
     // Unsubscribe an object from the events that it was subscribed to
     void UnsubscribeFromEvents(Object *o);
 
-public:
-    // Constructor
-    Scene(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCenter);
-
-    // Deconstructor
-    ~Scene();
-
-    // Return the name of the scene
-    std::string GetName();
-
-    // Scene camera (defines what region is shown on screen)
-    sf::View camera;
-
-    // Returns a list with the objects in the scene
-    const std::vector<Object *> &GetObjects();
     // Add object to scene or if it's a child add it to its parent
     void AddObject(Object *o);
+    void AddObject(int layer, Object *o);
     // Remove object from scene
     void RemoveObject(Object *o);
     // Delete the object that are not used (object from the list)
@@ -50,6 +40,21 @@ public:
 
     // Draw every visble Object
     void Draw(sf::RenderWindow &window);
+
+    friend class SceneManager;
+
+public:
+    // Constructor
+    Scene(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCenter);
+
+    // Deconstructor
+    ~Scene();
+
+    // Return the name of the scene
+    std::string GetName();
+
+    // Returns a list with the objects in the scene
+    const std::vector<Object *> &GetObjects();
 };
 
 // Class that holds the properties for building a Scene
@@ -57,19 +62,19 @@ class SceneBuilder
 {
 private:
     // The name of the scene
-    std::string name;
+    const std::string name;
 
     // The resolution of the camera
-    sf::Vector2f cameraSize;
+    const sf::Vector2f cameraSize;
     // The center point of the camera
-    sf::Vector2f cameraCenter;
+    const sf::Vector2f cameraCenter;
 
 public:
     // Constructor
-    SceneBuilder(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCenter, std::function<void(Scene *)> objects);
+    SceneBuilder(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCenter, std::function<std::vector<Object *>()> objects);
 
-    // Creates and adds the specified objects to the created scene
-    std::function<void(Scene *)> addObjectsToScene;
+    // Creates a vector of objects to be added to the created scene
+    std::function<std::vector<Object *>()> objects;
 
     // Returns the scene name
     std::string GetName();
@@ -94,6 +99,18 @@ private:
 
     sf::View defaultCamera;
 
+    // Change the active scene to the next scene and delete the previous scene
+    void SetActiveScene();
+
+    // Reacts to events from the active scene's objects
+    void OnEvent(sf::Event event);
+    // Update the active scene's objects
+    void Update();
+    // Draw the active scene's objects
+    void Draw(sf::RenderWindow &window);
+
+    friend class Game;
+
 public:
     // Constructor
     SceneManager();
@@ -102,22 +119,17 @@ public:
 
     // Set the next scene and trigger the change scene process
     void ChangeScene(SceneBuilder s);
-    // Change the active scene to the next scene and delete the previous scene
-    void SetActiveScene();
 
     // Adds a new object in the active scene
     void AddObject(Object *o);
+    void AddObject(int layer, Object *o);
     // Remove objects from the scene and parent and add them to the list of Objects to Delete
     void RemoveObject(Object *o);
     // Delete the objects that are marked to be deleted
     void DeleteObjects();
 
-    // Reacts to events from the active scene's objects
-    void OnEvent(sf::Event event);
-    // Update the active scene's objects
-    void Update();
-    // Draw the active scene's objects
-    void Draw(sf::RenderWindow &window);
+    // Sets the layer of the specified object
+    void SetObjectLayer(int layer, Object *o);
 
     // Get a pointer to the camera of the active scene
     sf::View &GetCamera();

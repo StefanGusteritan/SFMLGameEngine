@@ -2,9 +2,6 @@
 
 class TestChild : public RectangleObject
 {
-private:
-    float size = 100, speed = 20;
-
 public:
     TestChild(Object *p) : RectangleObject("Child", p)
     {
@@ -15,22 +12,24 @@ public:
         this->SetRotation(45);
     }
 
-    void Update() override
+    const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
     {
-        // this->Move(sf::Vector2f(1, 0), speed * game.time.GetDT());
+        return std::vector<sf::Event::EventType>{sf::Event::KeyPressed};
+    }
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
-            game.sceneManager.RemoveObject(this);
+private:
+    float size = 100, speed = 20;
 
-        this->RectangleObject::Update();
+    void OnEvent(sf::Event event) override
+    {
+        if (event.type == sf::Event::KeyPressed)
+            if (event.key.code == sf::Keyboard::C)
+                game.sceneManager.RemoveObject(this);
     }
 };
 
 class TestParent : public RectangleObject
 {
-private:
-    float size = 100, speed = 15;
-
 public:
     TestParent() : RectangleObject()
     {
@@ -38,6 +37,21 @@ public:
         this->rectangle.setFillColor(sf::Color::Blue);
         this->rectangle.setOrigin(size / 2, size / 2);
         this->SetPosition(sf::Vector2f(960, 540));
+    }
+
+    const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
+    {
+        return std::vector<sf::Event::EventType>{sf::Event::KeyPressed};
+    }
+
+private:
+    float size = 100, speed = 15;
+
+    void OnEvent(sf::Event event) override
+    {
+        if (event.type == sf::Event::KeyPressed)
+            if (event.key.code == sf::Keyboard::P)
+                game.sceneManager.RemoveObject(this);
     }
 
     void Update() override
@@ -72,9 +86,6 @@ public:
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Y))
             scaleDirection.y -= 1;
         this->SetScale(this->GetScale() + scaleDirection * 2.f * game.time.GetDT());
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::P))
-            game.sceneManager.RemoveObject(this);
 
         this->RectangleObject::Update();
     }

@@ -1,12 +1,12 @@
 #include "Scene.h"
 
-SceneBuilder::SceneBuilder(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCenter, std::function<void(Scene *)> objects)
+SceneBuilder::SceneBuilder(std::string name,
+                           sf::Vector2f cameraSize, sf::Vector2f cameraCenter,
+                           std::function<std::vector<Object *>()> objects)
+    : name(name), cameraSize(cameraSize), cameraCenter(cameraCenter)
 {
     // Initialize the variables
-    this->name = name;
-    this->cameraSize = cameraSize;
-    this->cameraCenter = cameraCenter;
-    this->addObjectsToScene = objects;
+    this->objects = objects;
 }
 
 std::string SceneBuilder::GetName()
@@ -40,7 +40,7 @@ void Scene::SubscribeToEvents(Object *o)
     for (sf::Event::EventType event : events)
     {
         this->eventSubscribers[event].push_back(o);
-        std::cout << "Subscribed: " << o->GetName() << '-' << o << " to event: " << event << std::endl;
+        std::cout << "Subscribed: " << o->name << '-' << o << " to event: " << event << std::endl;
     }
 }
 
@@ -62,21 +62,19 @@ void Scene::UnsubscribeFromEvents(Object *o)
         auto it = std::find(this->eventSubscribers[event].begin(), this->eventSubscribers[event].end(), o);
         if (it == this->eventSubscribers[event].end())
         {
-            std::cout << "Failed to unsubscribe: " << o->GetName() << '-' << o << " from event: " << event << " (Not found in subscribers list)" << std::endl;
+            std::cout << "Failed to unsubscribe: " << o->name << '-' << o << " from event: " << event << " (Not found in subscribers list)" << std::endl;
             continue;
         }
 
         // Remove the object from the list of subscribers for the event
         *it = this->eventSubscribers[event].back();
         this->eventSubscribers[event].pop_back();
-        std::cout << "Unsubscribed: " << o->GetName() << '-' << o << " from event: " << event << std::endl;
+        std::cout << "Unsubscribed: " << o->name << '-' << o << " from event: " << event << std::endl;
     }
 }
 
-Scene::Scene(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCenter)
+Scene::Scene(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCenter) : name(name)
 {
-    this->name = name;
-
     // Initialize Camera
     this->camera.setSize(cameraSize);
     this->camera.setCenter(cameraCenter);
@@ -116,13 +114,13 @@ void Scene::AddObject(Object *o)
     }
 
     // If the object is a child, it's added to its parent
-    if (o->IsChild())
+    if (o->hasParent)
     {
         // Verify if parent exists if id doesn't remove the object
-        Object *p = o->GetParent();
+        Object *p = o->parent;
         if (!p)
         {
-            std::cout << "Failed to add: " << o->GetName() << '-' << o << "to children list (NULL pointer to parent)";
+            std::cout << "Failed to add: " << o->name << '-' << o << "to children list (NULL pointer to parent)";
             return;
         }
 
@@ -132,7 +130,7 @@ void Scene::AddObject(Object *o)
     else
     {
         this->objects.push_back(o);
-        std::cout << "Added: " << o->GetName() << '-' << o << " to: " << this->name << '-' << this << " objects list" << std::endl;
+        std::cout << "Added: " << o->name << '-' << o << " to: " << this->name << '-' << this << " objects list" << std::endl;
     }
 
     // Subscribe the object to the events that it wants to react to
@@ -154,16 +152,17 @@ void Scene::RemoveObject(Object *o)
         this->RemoveObject(c);
 
     // Verify if the object is already marked to be deleted
-    if (o->IsMarkedToBeDeleted())
+    if (o->toBeDeleted)
     {
-        std::cout << "Failed to add: " << o->GetName() << '-' << o << " to delete list (Already marked to be deleted)" << std::endl;
+        std::cout << "Failed to add: " << o->name << '-' << o << " to delete list (Already marked to be deleted)" << std::endl;
         return;
     }
 
-    // Mark the object to be deleted and add it to the list to be deleted
-    o->MarkToBeDeleted();
-    objectsToDelete.push_back(o);
-    std::cout << "Added: " << o->GetName() << '-' << o << " to delete list" << std::endl;
+    // Mark the object to be deleted
+    o->toBeDeleted = true;
+    // Add the object to the delete list
+    this->objectsToDelete.push_back(o);
+    std::cout << "Added: " << o->name << '-' << o << " to delete list" << std::endl;
 }
 
 void Scene::DeleteObjects(bool removeFromScene)
@@ -184,18 +183,18 @@ void Scene::DeleteObjects(bool removeFromScene)
         if (removeFromScene)
         {
             // If the object is a child, it's removed from its parent
-            if (o->IsChild())
+            if (o->hasParent)
             {
                 // Verify if parent exists
-                Object *p = o->GetParent();
+                Object *p = o->parent;
                 if (!p)
                 {
-                    std::cout << "Failed to remove: " << o->GetName() << '-' << o << " from children list (NULL pointer to parent)" << std::endl;
+                    std::cout << "Failed to remove: " << o->name << '-' << o << " from children list (NULL pointer to parent)" << std::endl;
                     continue;
                 }
 
                 // If the parent is not marked to be deleted, the child is removed from the parent
-                if (!p->IsMarkedToBeDeleted())
+                if (!p->toBeDeleted)
                     p->RemoveChild(o);
             }
             // If the object is not a child, it's removed from the active scene
@@ -205,14 +204,14 @@ void Scene::DeleteObjects(bool removeFromScene)
                 auto it = std::find(this->objects.begin(), this->objects.end(), o);
                 if (it == this->objects.end())
                 {
-                    std::cout << "Failed to remove: " << o->GetName() << '-' << o << " from: " << this->name << '-' << this << " objects list (Not found in list)" << std::endl;
+                    std::cout << "Failed to remove: " << o->name << '-' << o << " from: " << this->name << '-' << this << " objects list (Not found in list)" << std::endl;
                     continue;
                 }
 
                 // Remove the object from the scene
                 *it = this->objects.back();
                 this->objects.pop_back();
-                std::cout << "Removed: " << o->GetName() << '-' << o << " from: " << this->name << '-' << this << " objects list" << std::endl;
+                std::cout << "Removed: " << o->name << '-' << o << " from: " << this->name << '-' << this << " objects list" << std::endl;
             }
 
             // Unsubscribe the object from the events that it was subscribed to
@@ -236,25 +235,25 @@ void Scene::OnEvent(sf::Event event)
             continue;
         }
 
-        if (!o->IsActive())
+        if (!o->active)
             continue;
 
-        if (o->IsChild())
+        if (o->hasParent)
         {
             bool active = true;
             Object *aux = o;
             do
             {
                 // Verify if parent exists
-                Object *p = aux->GetParent();
+                Object *p = aux->parent;
                 if (!p)
                 {
-                    std::cout << "Failed to call: " << o->GetName() << '-' << o << " OnEvent() (NULL pointer to parent)" << std::endl;
+                    std::cout << "Failed to call: " << o->name << '-' << o << " OnEvent() (NULL pointer to parent)" << std::endl;
                     active = false;
                 }
                 else
                 {
-                    active = p->IsActive();
+                    active = p->active;
                     aux = p;
                 }
 
@@ -279,7 +278,7 @@ void Scene::Update()
             continue;
         }
 
-        if (o->IsActive())
+        if (o->active)
             o->Update();
     }
 }
@@ -295,7 +294,7 @@ void Scene::Draw(sf::RenderWindow &window)
             continue;
         }
 
-        if (o->IsVisible())
+        if (o->visible)
             o->Draw(window);
     }
 }
@@ -326,7 +325,9 @@ void SceneManager::ChangeScene(SceneBuilder s)
     // Creates the scene
     this->nextScene = new Scene(s.GetName(), s.GetCameraSize(), s.GetCameraCenter());
     // Creates and adds the objects to the scene
-    s.addObjectsToScene(this->nextScene);
+    std::vector<Object *> obj = s.objects();
+    for (auto o : obj)
+        nextScene->AddObject(o);
 
     // Sets the flag to change the scene when the Update() and Run() methods are over
     this->changingScene = true;
@@ -353,7 +354,7 @@ void SceneManager::SetActiveScene()
     nextScene = nullptr;
     this->changingScene = false;
 
-    std::cout << "Active scene is set to: " << activeScene->GetName() << '-' << activeScene << std::endl;
+    std::cout << "Active scene is set to: " << activeScene->name << '-' << activeScene << std::endl;
 
     // Deletes the previous scene if it exists
     if (previousScene)

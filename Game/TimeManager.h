@@ -8,10 +8,12 @@ private:
     sf::Clock dtClock;
     float deltaTime;
 
-public:
     // Update the deltaTime by getting the elapsed time since the last update and restart the clock
     void UpdateDeltaTime();
 
+    friend class Game;
+
+public:
     // Get the deltaTime
     float GetDT();
 };

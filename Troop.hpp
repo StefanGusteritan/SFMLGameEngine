@@ -2,6 +2,19 @@
 
 class Troop : public RectangleObject
 {
+public:
+    Troop() : RectangleObject("Troop")
+    {
+        this->rectangle.setSize(sf::Vector2f(size, size));
+        this->rectangle.setFillColor(sf::Color::White);
+        this->rectangle.setOrigin(size / 2, size / 2);
+    }
+
+    const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
+    {
+        return std::vector<sf::Event::EventType>{sf::Event::KeyPressed, sf::Event::MouseButtonPressed};
+    }
+
 private:
     float size = 200, speed = 25, targetOffset = 25;
     bool moving = false, selected = false;
@@ -21,19 +34,6 @@ private:
         std::cout << "Troop: " << this << " deselected\n";
         selected = false;
         this->rectangle.setFillColor(sf::Color::White);
-    }
-
-public:
-    Troop() : RectangleObject("Troop")
-    {
-        this->rectangle.setSize(sf::Vector2f(size, size));
-        this->rectangle.setFillColor(sf::Color::White);
-        this->rectangle.setOrigin(size / 2, size / 2);
-    }
-
-    const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
-    {
-        return std::vector<sf::Event::EventType>{sf::Event::KeyPressed, sf::Event::MouseButtonPressed};
     }
 
     void OnEvent(sf::Event event) override

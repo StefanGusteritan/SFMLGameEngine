@@ -2,15 +2,12 @@
 
 // Object
 
-Object::Object(Scene *scene)
+Object::Object() : name("Object"), hasParent(false), parent(nullptr)
 {
     // Initialize default values
-    this->scene = scene;
     this->layer = 0;
-    this->name = "Object";
     this->active = true;
     this->visible = true;
-    this->hasParent = false;
     this->toBeDeleted = false;
 
     // Initialize local transform
@@ -26,15 +23,12 @@ Object::Object(Scene *scene)
     std::cout << "Created: " << this->name << '-' << this << " with no parent" << std::endl;
 }
 
-Object::Object(Scene *scene, std::string name)
+Object::Object(std::string name) : name(name), hasParent(false), parent(nullptr)
 {
     // Initialize default values
-    this->scene = scene;
     this->layer = 0;
-    this->name = name;
     this->active = true;
     this->visible = true;
-    this->hasParent = false;
     this->toBeDeleted = false;
 
     // Initialize local transform
@@ -50,12 +44,10 @@ Object::Object(Scene *scene, std::string name)
     std::cout << "Created: " << this->name << '-' << this << " with no parent" << std::endl;
 }
 
-Object::Object(Scene *scene, Object *parent)
+Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), parent(parent)
 {
     // Initialize default values
-    this->scene = scene;
     this->layer = 0;
-    this->name = "Object";
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -69,8 +61,6 @@ Object::Object(Scene *scene, Object *parent)
     if (!parent)
     {
         // If the parent doesn't exist the object is created without a parent
-        this->parent = nullptr;
-        hasParent = false;
 
         // Initialize global transform
         this->globalPosition = sf::Vector2f(0, 0);
@@ -82,24 +72,20 @@ Object::Object(Scene *scene, Object *parent)
     else
     {
         // If the parent exists the object is created as a child of the parent
-        this->parent = parent;
-        hasParent = true;
 
         // Initialize global transform based on parent
-        this->globalPosition = this->parent->GetGlobalPosition();
-        this->globalRotation = this->parent->GetGlobalRotation();
-        this->globalScale = this->parent->GetGlobalScale();
+        this->globalPosition = this->parent->globalPosition;
+        this->globalRotation = this->parent->globalRotation;
+        this->globalScale = this->parent->globalScale;
 
         std::cout << "Created: " << this->name << '-' << this << " with parent: " << parent->name << '-' << parent << std::endl;
     }
 }
 
-Object::Object(Scene *scene, std::string name, Object *parent)
+Object::Object(std::string name, Object *parent) : name(name), hasParent(parent != nullptr), parent(parent)
 {
     // Initialize default values
-    this->scene = scene;
     this->layer = 0;
-    this->name = name;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -113,8 +99,6 @@ Object::Object(Scene *scene, std::string name, Object *parent)
     if (!parent)
     {
         // If the parent doesn't exist the object is created without a parent
-        this->parent = nullptr;
-        hasParent = false;
 
         // Initialize global transform
         this->globalPosition = sf::Vector2f(0, 0);
@@ -126,13 +110,11 @@ Object::Object(Scene *scene, std::string name, Object *parent)
     else
     {
         // If the parent exists the object is created as a child of the parent
-        this->parent = parent;
-        hasParent = true;
 
         // Initialize global transform based on parent
-        this->globalPosition = this->parent->GetGlobalPosition();
-        this->globalRotation = this->parent->GetGlobalRotation();
-        this->globalScale = this->parent->GetGlobalScale();
+        this->globalPosition = this->parent->globalPosition;
+        this->globalRotation = this->parent->globalRotation;
+        this->globalScale = this->parent->globalScale;
 
         std::cout << "Created: " << this->name << '-' << this << " with parent: " << parent->name << '-' << parent << std::endl;
     }
@@ -186,11 +168,6 @@ bool Object::IsActive()
     return this->active;
 }
 
-void Object::SetLayer(int l)
-{
-    this->layer = l;
-}
-
 void Object::SetActive(bool a)
 {
     this->active = a;
@@ -217,12 +194,12 @@ void Object::Update()
         // Updates the global transform based of the parent transform
 
         // Get the parent transform
-        float parentRotation = this->parent->GetGlobalRotation();
+        float parentRotation = this->parent->globalRotation;
         float parentRotationRad = parentRotation * M_PI / 180;
-        sf::Vector2f parentPosition = this->parent->GetGlobalPosition();
+        sf::Vector2f parentPosition = this->parent->globalPosition;
         sf::Vector2f parentRight(cos(parentRotationRad), sin(parentRotationRad));
         sf::Vector2f parentUp(-parentRight.y, parentRight.x);
-        sf::Vector2f parentScale = this->parent->GetGlobalScale();
+        sf::Vector2f parentScale = this->parent->globalScale;
 
         // The global position is the sum of the parent position and the local position rotated and scaled by the parent transform
         sf::Vector2f finalPosition;
@@ -254,7 +231,7 @@ void Object::Update()
             continue;
         }
 
-        if (c->IsActive())
+        if (c->active)
             c->Update();
     }
 }
@@ -271,7 +248,7 @@ void Object::Draw(sf::RenderWindow &window)
             continue;
         }
 
-        if (c->IsVisible())
+        if (c->visible)
             c->Draw(window);
     }
 }
@@ -369,11 +346,6 @@ const std::vector<sf::Event::EventType> Object::GetEventsToSubscribe()
     return std::vector<sf::Event::EventType>();
 }
 
-void Object::MarkToBeDeleted()
-{
-    this->toBeDeleted = true;
-}
-
 bool Object::IsMarkedToBeDeleted()
 {
     return this->toBeDeleted;
@@ -381,16 +353,16 @@ bool Object::IsMarkedToBeDeleted()
 
 // SpriteObject
 
-SpriteObject::SpriteObject(Scene *scene) : Object(scene)
+SpriteObject::SpriteObject() : Object()
 {
 }
-SpriteObject::SpriteObject(Scene *scene, std::string name) : Object(scene, name)
+SpriteObject::SpriteObject(std::string name) : Object(name)
 {
 }
-SpriteObject::SpriteObject(Scene *scene, Object *parent) : Object(scene, parent)
+SpriteObject::SpriteObject(Object *parent) : Object(parent)
 {
 }
-SpriteObject::SpriteObject(Scene *scene, std::string name, Object *parent) : Object(scene, name, parent)
+SpriteObject::SpriteObject(std::string name, Object *parent) : Object(name, parent)
 {
 }
 
@@ -416,16 +388,16 @@ void SpriteObject::Draw(sf::RenderWindow &window)
 
 // TextObject
 
-TextObject::TextObject(Scene *scene) : Object(scene)
+TextObject::TextObject() : Object()
 {
 }
-TextObject::TextObject(Scene *scene, std::string name) : Object(scene, name)
+TextObject::TextObject(std::string name) : Object(name)
 {
 }
-TextObject::TextObject(Scene *scene, Object *parent) : Object(scene, parent)
+TextObject::TextObject(Object *parent) : Object(parent)
 {
 }
-TextObject::TextObject(Scene *scene, std::string name, Object *parent) : Object(scene, name, parent)
+TextObject::TextObject(std::string name, Object *parent) : Object(name, parent)
 {
 }
 
@@ -451,16 +423,16 @@ void TextObject::Draw(sf::RenderWindow &window)
 
 // CircleObject
 
-CircleObject::CircleObject(Scene *scene) : Object(scene)
+CircleObject::CircleObject() : Object()
 {
 }
-CircleObject::CircleObject(Scene *scene, std::string name) : Object(scene, name)
+CircleObject::CircleObject(std::string name) : Object(name)
 {
 }
-CircleObject::CircleObject(Scene *scene, Object *parent) : Object(scene, parent)
+CircleObject::CircleObject(Object *parent) : Object(parent)
 {
 }
-CircleObject::CircleObject(Scene *scene, std::string name, Object *parent) : Object(scene, name, parent)
+CircleObject::CircleObject(std::string name, Object *parent) : Object(name, parent)
 {
 }
 
@@ -486,16 +458,16 @@ void CircleObject::Draw(sf::RenderWindow &window)
 
 // RectangleObject
 
-RectangleObject::RectangleObject(Scene *scene) : Object(scene)
+RectangleObject::RectangleObject() : Object()
 {
 }
-RectangleObject::RectangleObject(Scene *scene, std::string name) : Object(scene, name)
+RectangleObject::RectangleObject(std::string name) : Object(name)
 {
 }
-RectangleObject::RectangleObject(Scene *scene, Object *parent) : Object(scene, parent)
+RectangleObject::RectangleObject(Object *parent) : Object(parent)
 {
 }
-RectangleObject::RectangleObject(Scene *scene, std::string name, Object *parent) : Object(scene, name, parent)
+RectangleObject::RectangleObject(std::string name, Object *parent) : Object(name, parent)
 {
 }
 
@@ -521,16 +493,16 @@ void RectangleObject::Draw(sf::RenderWindow &window)
 
 // ConvexObject
 
-ConvexObject::ConvexObject(Scene *scene) : Object(scene)
+ConvexObject::ConvexObject() : Object()
 {
 }
-ConvexObject::ConvexObject(Scene *scene, Object *parent) : Object(scene, parent)
+ConvexObject::ConvexObject(Object *parent) : Object(parent)
 {
 }
-ConvexObject::ConvexObject(Scene *scene, std::string name) : Object(scene, name)
+ConvexObject::ConvexObject(std::string name) : Object(name)
 {
 }
-ConvexObject::ConvexObject(Scene *scene, std::string name, Object *parent) : Object(scene, name, parent)
+ConvexObject::ConvexObject(std::string name, Object *parent) : Object(name, parent)
 {
 }
 

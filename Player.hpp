@@ -2,9 +2,6 @@
 
 class Player : public RectangleObject
 {
-private:
-    float size = 100, speed = 75;
-
 public:
     Player() : RectangleObject("Player")
     {
@@ -17,6 +14,9 @@ public:
         return std::vector<sf::Event::EventType>{sf::Event::KeyPressed};
     }
 
+private:
+    float size = 100, speed = 75;
+
     void OnEvent(sf::Event event) override
     {
         if (event.type == sf::Event::KeyPressed)
@@ -28,7 +28,6 @@ public:
 
     void Update() override
     {
-
         sf::Vector2f moveDirection = sf::Vector2f(0, 0);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
             moveDirection.x += 1;
