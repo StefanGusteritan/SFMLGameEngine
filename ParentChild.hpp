@@ -24,7 +24,12 @@ private:
     {
         if (event.type == sf::Event::KeyPressed)
             if (event.key.code == sf::Keyboard::C)
-                game.sceneManager.RemoveObject(this);
+            {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                    game.sceneManager.SetObjectLayer(3, this);
+                else
+                    game.sceneManager.RemoveObject(this);
+            }
     }
 };
 
@@ -51,7 +56,12 @@ private:
     {
         if (event.type == sf::Event::KeyPressed)
             if (event.key.code == sf::Keyboard::P)
-                game.sceneManager.RemoveObject(this);
+            {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                    game.sceneManager.SetObjectLayer(0, this);
+                else
+                    game.sceneManager.RemoveObject(this);
+            }
     }
 
     void Update() override

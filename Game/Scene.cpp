@@ -252,6 +252,92 @@ void Scene::DeleteObjects(bool removeFromScene)
     objectsToDelete.clear();
 }
 
+void Scene::SetObjectLayer(int layer, Object *o)
+{
+    // Verify if the object is a child (if it is its layer must be its parents layer)
+    if (o->hasParent && o->parent != nullptr)
+    {
+        Object *p = o->parent;
+        if (p->layer != layer)
+        {
+            std::cout << "Failed to set layer of: " << o->name << '-' << o
+                      << " (Cannot be on a different layer than its parent: " << p->name << '-' << p
+                      << ") Remaining on layer: " << p->layer << std::endl;
+            return;
+        }
+    }
+    // If it isn't a child verify it not to be already marked to be moved
+    else if (o->toBeMoved)
+    {
+        std::cout << "Failed to set layer of: " << o->name << '-' << o
+                  << " (Already marked to be moved to layer: " << o->layer << ")" << std::endl;
+        return;
+    }
+    // If it isn't mark it to be moved
+    else
+    {
+        o->toBeMoved = true;
+        this->objectsToMove.push_back(o);
+    }
+
+    // Set it's layer and save the old layer so it can be removed from that one
+    o->oldLayer = o->layer;
+    o->layer = layer;
+
+    std::cout << "Setted: " << o->name << '-' << o
+              << " layer from: " << o->oldLayer
+              << " to: " << o->layer << std::endl;
+
+    // Set the layer for it's children
+    const std::vector<Object *> &children = o->GetChildren();
+    for (Object *c : children)
+        SetObjectLayer(layer, c);
+}
+
+void Scene::MoveObjects()
+{
+    for (int i = 0; i < objectsToMove.size(); i++)
+    {
+        // Get the object to be moved and set the pointer tu null in the list
+        Object *o = objectsToMove.at(i);
+        objectsToMove[i] = nullptr;
+
+        // Verify the object to exist
+        if (!o)
+        {
+            std::cout << "Failed to move object (NULL pointer)";
+            continue;
+        }
+
+        // Search for the object in the old layer
+        int ol = o->oldLayer, l = o->layer;
+        auto it = std::find(this->layers[ol].begin(), this->layers[ol].end(), o);
+        if (it == this->layers[ol].end())
+        {
+            std::cout << "Failed to move: " << o->name << '-' << o
+                      << " from: " << this->name << '-' << this
+                      << " layer: " << ol << " to layer: " << l
+                      << " (Not found in list)";
+            continue;
+        }
+
+        // Remove the object from the old layer
+        *it = this->layers[ol].back();
+        this->layers[ol].pop_back();
+
+        // Add the object to the new layer
+        this->layers[l].push_back(o);
+
+        o->toBeMoved = false;
+
+        std::cout << "Moved: " << o->name << '-' << o
+                  << " from: " << this->name << '-' << this
+                  << " layer: " << ol << " to layer: " << l << std::endl;
+    }
+
+    objectsToMove.clear();
+}
+
 void Scene::OnEvent(sf::Event event)
 {
     for (Object *o : this->eventSubscribers[event.type])
@@ -417,6 +503,18 @@ void SceneManager::RemoveObject(Object *o)
     this->activeScene->RemoveObject(o);
 }
 
+void SceneManager::SetObjectLayer(int layer, Object *o)
+{
+    // Verify the active scene to exist
+    if (!this->activeScene)
+    {
+        std::cout << "Failed to set objects layer in active scene (NULL pointer to scene)" << std::endl;
+        return;
+    }
+
+    this->activeScene->SetObjectLayer(layer, o);
+}
+
 void SceneManager::DeleteObjects()
 {
     // Verify the active scene to exist
@@ -427,6 +525,18 @@ void SceneManager::DeleteObjects()
     }
 
     this->activeScene->DeleteObjects();
+}
+
+void SceneManager::MoveObjects()
+{
+    // Verify the active scene to exist
+    if (!this->activeScene)
+    {
+        std::cout << "Failed to move marked objects is active scene (NULL pointer to scene)" << std::endl;
+        return;
+    }
+
+    this->activeScene->MoveObjects();
 }
 
 void SceneManager::OnEvent(sf::Event event)

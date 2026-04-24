@@ -22,6 +22,7 @@ private:
     const std::string name;
     // Layer of the object (objects with higher layers are drawn on top of objects with lower layers)
     int layer;
+    int oldLayer;
 
     // Active state of the object (if it's false the update function will not be called)
     bool active;
@@ -48,6 +49,8 @@ private:
 
     // True if the object is marked to be deleted (if it's true the object will be deleted at the end of the frame)
     bool toBeDeleted;
+    // True if the object is marked to be moved to other layer (if it's true the object will be moved at the end of the frame)
+    bool toBeMoved;
 
     // Add a child to its list of children (Should only be called from Scene class )
     void AddChild(Object *c);
@@ -128,6 +131,8 @@ public:
 
     // True if the object is marked to be deleted
     bool IsMarkedToBeDeleted();
+    // True if the object is marked to be moved
+    bool IsMarkedToBeMoved();
 };
 
 // Object that has a sprite

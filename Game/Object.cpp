@@ -6,9 +6,11 @@ Object::Object() : name("Object"), hasParent(false), parent(nullptr)
 {
     // Initialize default values
     this->layer = 0;
+    this->oldLayer = 0;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
+    this->toBeMoved = false;
 
     // Initialize local transform
     this->position = sf::Vector2f(0, 0);
@@ -28,9 +30,11 @@ Object::Object(std::string name) : name(name), hasParent(false), parent(nullptr)
 {
     // Initialize default values
     this->layer = 0;
+    this->oldLayer = 0;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
+    this->toBeMoved = false;
 
     // Initialize local transform
     this->position = sf::Vector2f(0, 0);
@@ -50,9 +54,11 @@ Object::Object(int layer) : name("Object"), hasParent(false), parent(nullptr)
 {
     // Initialize default values
     this->layer = layer;
+    this->oldLayer = 0;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
+    this->toBeMoved = false;
 
     // Initialize local transform
     this->position = sf::Vector2f(0, 0);
@@ -71,9 +77,11 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
 {
     // Initialize default values
     this->layer = 0;
+    this->oldLayer = 0;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
+    this->toBeMoved = false;
 
     // Initialize local transform
     this->position = sf::Vector2f(0, 0);
@@ -111,9 +119,11 @@ Object::Object(std::string name, int layer) : name(name), hasParent(false), pare
 {
     // Initialize default values
     this->layer = layer;
+    this->oldLayer = 0;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
+    this->toBeMoved = false;
 
     // Initialize local transform
     this->position = sf::Vector2f(0, 0);
@@ -133,9 +143,11 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
 {
     // Initialize default values
     this->layer = 0;
+    this->oldLayer = 0;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
+    this->toBeMoved = false;
 
     // Initialize local transform
     this->position = sf::Vector2f(0, 0);
@@ -173,9 +185,11 @@ Object::Object(int layer, Object *parent) : name("Object"), hasParent(parent != 
 {
     // Initialize default values
     this->layer = layer;
+    this->oldLayer = 0;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
+    this->toBeMoved = false;
 
     // Initialize local transform
     this->position = sf::Vector2f(0, 0);
@@ -213,9 +227,11 @@ Object::Object(std::string name, int layer, Object *parent) : name(name), hasPar
 {
     // Initialize default values
     this->layer = layer;
+    this->oldLayer = 0;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
+    this->toBeMoved = false;
 
     // Initialize local transform
     this->position = sf::Vector2f(0, 0);
@@ -485,6 +501,11 @@ const std::vector<sf::Event::EventType> Object::GetEventsToSubscribe()
 bool Object::IsMarkedToBeDeleted()
 {
     return this->toBeDeleted;
+}
+
+bool Object::IsMarkedToBeMoved()
+{
+    return this->toBeMoved;
 }
 
 // SpriteObject

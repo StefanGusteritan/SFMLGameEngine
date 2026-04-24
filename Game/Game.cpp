@@ -64,6 +64,8 @@ void Game::Run()
 
         // Delete the objects that are marked to be deleted in the active scene
         this->sceneManager.DeleteObjects();
+        // Move the objects that are marked to be deleted in the active scene
+        this->sceneManager.MoveObjects();
 
         // Update and draw the frame
         this->Update();

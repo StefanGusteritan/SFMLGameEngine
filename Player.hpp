@@ -6,18 +6,15 @@ public:
     Player(int layer) : RectangleObject("Player", layer)
     {
         this->rectangle.setSize(sf::Vector2f(size, size));
-        if (layer == 2)
-            this->rectangle.setFillColor(sf::Color::Green);
         if (layer == 1)
+            this->rectangle.setFillColor(sf::Color::Green);
+        else
             this->rectangle.setFillColor(sf::Color::Blue);
     }
 
     const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
     {
-        if (this->GetLayer() == 1)
-            return std::vector<sf::Event::EventType>{sf::Event::KeyPressed};
-        else
-            return std::vector<sf::Event::EventType>();
+        return std::vector<sf::Event::EventType>{sf::Event::KeyPressed};
     }
 
 private:
@@ -27,15 +24,22 @@ private:
     {
         if (event.type == sf::Event::KeyPressed)
         {
-            if (event.key.code == sf::Keyboard::N)
+            if (event.key.code == sf::Keyboard::N && this->GetLayer() == 1)
                 game.sceneManager.ChangeScene(troopScene);
+            if (event.key.code == sf::Keyboard::L)
+            {
+                if (this->GetLayer() == 0)
+                    game.sceneManager.SetObjectLayer(2, this);
+                else if (this->GetLayer() == 2)
+                    game.sceneManager.SetObjectLayer(0, this);
+            }
         }
     }
 
     void Update() override
     {
         sf::Vector2f moveDirection = sf::Vector2f(0, 0);
-        if (this->GetLayer() == 2)
+        if (this->GetLayer() == 1)
         {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
                 moveDirection.x += 1;
@@ -46,7 +50,7 @@ private:
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
                 moveDirection.y -= 1;
         }
-        else if (this->GetLayer() == 1)
+        else
         {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
                 moveDirection.x += 1;

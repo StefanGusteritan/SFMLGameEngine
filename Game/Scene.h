@@ -10,8 +10,10 @@ private:
     // The objects in the scene, if they are active they will be updated every frame
     std::map<int, std::vector<Object *>> layers;
 
-    // Object that need to be deleted
+    // Objects that need to be deleted
     std::vector<Object *> objectsToDelete;
+    // Objects that need to be moved from a layer to another
+    std::vector<Object *> objectsToMove;
 
     // Scene camera (defines what region is shown on screen)
     sf::View camera;
@@ -32,6 +34,8 @@ private:
 
     // Set an object's layer
     void SetObjectLayer(int layer, Object *o);
+    // Move the object marked to their new layers
+    void MoveObjects();
 
     // Reacts to events, calls each active object's method
     void OnEvent(sf::Event event);
@@ -107,6 +111,11 @@ private:
     // Draw the active scene's objects
     void Draw(sf::RenderWindow &window);
 
+    // Delete the objects that are marked to be deleted
+    void DeleteObjects();
+    // Move the objects that are marked to be moved
+    void MoveObjects();
+
     friend class Game;
 
 public:
@@ -122,8 +131,6 @@ public:
     void AddObject(Object *o);
     // Remove objects from the scene and parent and add them to the list of Objects to Delete
     void RemoveObject(Object *o);
-    // Delete the objects that are marked to be deleted
-    void DeleteObjects();
 
     // Sets the layer of the specified object
     void SetObjectLayer(int layer, Object *o);
