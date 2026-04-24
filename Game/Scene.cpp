@@ -110,39 +110,43 @@ void Scene::AddObject(Object *o)
     if (!o)
     {
         std::cout << "Failed to add object to: " << this->name << '-' << this
-                  << " objects list: (NULL pointer)" << std::endl;
+                  << " objects list (NULL pointer)" << std::endl;
         return;
     }
 
-    // If the object is a child, it's added to its parent
-    if (o->hasParent)
+    if (o->registered)
     {
-        // Verify if parent exists if id doesn't remove the object
+        std::cout << "Failed to add: " << o->name << '-' << o
+                  << " to: " << this->name << '-' << this
+                  << " objects list (Already registered)" << std::endl;
+        return;
+    }
+
+    // Verify the object is a child
+    if (o->hasParent && o->parent != nullptr)
+    {
+        // Ensure the object has the same layer sa its parent
         Object *p = o->parent;
-        if (!p)
-        {
-            std::cout << "Failed to add: " << o->name << '-' << o
-                      << " to children list (NULL pointer to parent) - Adding to scene instead";
-
-            this->layers[o->layer].push_back(o);
-            std::cout << "Added: " << o->name << '-' << o
-                      << " to: " << this->name << '-' << this
-                      << " objects list-layer:" << o->layer << std::endl;
-            return;
-        }
-
         if (p->layer != o->layer)
             std::cout << o->name << '-' << o
                       << " cannot be on a different layer than its parent: " << p->name << '-' << p
                       << " Setting layer from: " << o->layer
                       << " to: " << p->layer << std::endl;
-
         o->layer = p->layer;
-        p->AddChild(o);
     }
     // If the object is not a child add it to the scene
     else
     {
+        // If the object was marked ass a child but it dose not have a parent mark it as a root object
+        if (o->hasParent)
+        {
+            std::cout << "Failed to add: " << o->name << '-' << o
+                      << " to children list (NULL pointer to parent) - Adding to scene instead";
+
+            o->hasParent = false;
+        }
+
+        // Add the object to the scene
         this->layers[o->layer].push_back(o);
         std::cout << "Added: " << o->name << '-' << o
                   << " to: " << this->name << '-' << this
@@ -151,6 +155,14 @@ void Scene::AddObject(Object *o)
 
     // Subscribe the object to the events that it wants to react to
     this->SubscribeToEvents(o);
+
+    // Register all of the children
+    const std::vector<Object *> &children = o->GetChildren();
+    for (Object *c : children)
+        this->AddObject(c);
+
+    // Mark the object as registered
+    o->registered = true;
 }
 
 void Scene::RemoveObject(Object *o)
@@ -254,10 +266,29 @@ void Scene::DeleteObjects(bool removeFromScene)
 
 void Scene::SetObjectLayer(int layer, Object *o)
 {
+    if (!o)
+    {
+        std::cout << "Failed to set layer of object (NULL pointer)" << std::endl;
+        return;
+    }
+
+    if (o->layer == layer)
+    {
+        std::cout << "Failed to set layer of: " << o->name << o
+                  << "(Already on layer: " << layer << ")" << std::endl;
+        return;
+    }
+
     // Verify if the object is a child (if it is its layer must be its parents layer)
-    if (o->hasParent && o->parent != nullptr)
+    if (o->hasParent)
     {
         Object *p = o->parent;
+        if (!p)
+        {
+            std::cout << "Failed to set layer of: " << o->name << '-' << o
+                      << " (NULL pointer to parent)" << std::endl;
+            return;
+        }
         if (p->layer != layer)
         {
             std::cout << "Failed to set layer of: " << o->name << '-' << o
@@ -318,6 +349,15 @@ void Scene::MoveObjects()
                       << " from: " << this->name << '-' << this
                       << " layer: " << ol << " to layer: " << l
                       << " (Not found in list)";
+
+            // Add the object to the new layer
+            this->layers[l].push_back(o);
+
+            o->toBeMoved = false;
+
+            std::cout << "Added: " << o->name << '-' << o
+                      << " to: " << this->name << '-' << this
+                      << " layer: " << l << std::endl;
             continue;
         }
 
@@ -371,7 +411,7 @@ void Scene::OnEvent(sf::Event event)
                     aux = p;
                 }
 
-            } while (aux->IsChild() && active);
+            } while (aux->hasParent && active);
 
             if (!active)
                 continue;
@@ -543,10 +583,13 @@ void SceneManager::OnEvent(sf::Event event)
 {
     // Verify the active scene to exist
     if (!this->activeScene)
+    {
         std::cout << "Failed to react to events from active scene's objects (NULL pointer to scene)" << std::endl;
+        return;
+    }
+
     // If the active scene exists, react to events from its objects
-    else
-        this->activeScene->OnEvent(event);
+    this->activeScene->OnEvent(event);
 }
 
 void SceneManager::Update()
@@ -557,6 +600,7 @@ void SceneManager::Update()
         std::cout << "Failed to update scene objects (NULL pointer to scene)" << std::endl;
         return;
     }
+
     // Update all active objects in the active scene
     this->activeScene->Update();
 }

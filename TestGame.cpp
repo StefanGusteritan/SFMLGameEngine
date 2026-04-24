@@ -29,6 +29,5 @@ SceneBuilder parentChildScene("Parent-Child_Scene",
                                 std::vector<Object *> obj;
                                 TestParent *p = new TestParent;
                                 obj.push_back(p);
-                                obj.push_back(new TestChild(p));
                                 return obj;
                               });

@@ -42,6 +42,7 @@ public:
         this->rectangle.setFillColor(sf::Color::Blue);
         this->rectangle.setOrigin(size / 2, size / 2);
         this->SetPosition(sf::Vector2f(960, 540));
+        new TestChild(this);
     }
 
     const std::vector<sf::Event::EventType> GetEventsToSubscribe() override

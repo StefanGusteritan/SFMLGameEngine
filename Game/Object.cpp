@@ -7,6 +7,7 @@ Object::Object() : name("Object"), hasParent(false), parent(nullptr)
     // Initialize default values
     this->layer = 0;
     this->oldLayer = 0;
+    this->registered = false;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -31,6 +32,7 @@ Object::Object(std::string name) : name(name), hasParent(false), parent(nullptr)
     // Initialize default values
     this->layer = 0;
     this->oldLayer = 0;
+    this->registered = false;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -55,6 +57,7 @@ Object::Object(int layer) : name("Object"), hasParent(false), parent(nullptr)
     // Initialize default values
     this->layer = layer;
     this->oldLayer = 0;
+    this->registered = false;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -78,6 +81,7 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
     // Initialize default values
     this->layer = 0;
     this->oldLayer = 0;
+    this->registered = false;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -112,6 +116,9 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
 
         std::cout << "Created: " << this->name << '-' << this
                   << " with parent: " << parent->name << '-' << parent << std::endl;
+
+        // Add the object to its parent children list
+        parent->AddChild(this);
     }
 }
 
@@ -120,6 +127,7 @@ Object::Object(std::string name, int layer) : name(name), hasParent(false), pare
     // Initialize default values
     this->layer = layer;
     this->oldLayer = 0;
+    this->registered = false;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -144,6 +152,7 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
     // Initialize default values
     this->layer = 0;
     this->oldLayer = 0;
+    this->registered = false;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -178,6 +187,9 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
 
         std::cout << "Created: " << this->name << '-' << this
                   << " with parent: " << parent->name << '-' << parent << std::endl;
+
+        // Add the object to its parent children list
+        parent->AddChild(this);
     }
 }
 
@@ -186,6 +198,7 @@ Object::Object(int layer, Object *parent) : name("Object"), hasParent(parent != 
     // Initialize default values
     this->layer = layer;
     this->oldLayer = 0;
+    this->registered = false;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -220,6 +233,9 @@ Object::Object(int layer, Object *parent) : name("Object"), hasParent(parent != 
 
         std::cout << "Created: " << this->name << '-' << this
                   << " with parent: " << parent->name << '-' << parent << std::endl;
+
+        // Add the object to its parent children list
+        parent->AddChild(this);
     }
 }
 
@@ -228,6 +244,7 @@ Object::Object(std::string name, int layer, Object *parent) : name(name), hasPar
     // Initialize default values
     this->layer = layer;
     this->oldLayer = 0;
+    this->registered = false;
     this->active = true;
     this->visible = true;
     this->toBeDeleted = false;
@@ -262,6 +279,9 @@ Object::Object(std::string name, int layer, Object *parent) : name(name), hasPar
 
         std::cout << "Created: " << this->name << '-' << this
                   << " with parent: " << parent->name << '-' << parent << std::endl;
+
+        // Add the object to its parent children list
+        parent->AddChild(this);
     }
 }
 
@@ -334,6 +354,9 @@ void Object::OnEvent(sf::Event event)
 
 void Object::Update()
 {
+    if (!this->registered)
+        return;
+
     if (this->hasParent && parent != nullptr)
     {
         // Updates the global transform based of the parent transform
@@ -383,6 +406,9 @@ void Object::Update()
 
 void Object::Draw(sf::RenderWindow &window)
 {
+    if (!this->registered)
+        return;
+
     // Draw the children of the object
     for (auto c : this->children)
     {
@@ -548,11 +574,11 @@ void SpriteObject::Update()
 
 void SpriteObject::Draw(sf::RenderWindow &window)
 {
-    // Draw the sprite
-    window.draw(this->sprite);
-
     // Draw the children of the object
     this->Object::Draw(window);
+
+    // Draw the sprite
+    window.draw(this->sprite);
 }
 
 // TextObject

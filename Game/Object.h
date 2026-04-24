@@ -24,15 +24,18 @@ private:
     int layer;
     int oldLayer;
 
+    // True when the object is completely added to the scene
+    bool registered;
+
     // Active state of the object (if it's false the update function will not be called)
     bool active;
     // Visible state of the object (if it's false the draw function will not be called)
     bool visible;
 
     // Parent of the object (if it has one)
-    Object *const parent;
+    Object *parent;
     // True if the object has a parent
-    const bool hasParent;
+    bool hasParent;
 
     // Children of the object
     std::vector<Object *> children;
