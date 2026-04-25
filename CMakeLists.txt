@@ -14,8 +14,8 @@ include_directories(Game)
 
 # Define Source Files
 set(SOURCES
-    main.cpp
-    TestGame.cpp
+    Example/main.cpp
+    Example/TestGame.cpp
     Game/Game.cpp
     Game/Object.cpp
     Game/Scene.cpp
