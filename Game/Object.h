@@ -22,7 +22,8 @@ private:
     const std::string name;
     // Layer of the object (objects with higher layers are drawn on top of objects with lower layers)
     int layer;
-    int oldLayer;
+    // layer that the object will move to
+    int newLayer;
 
     // True when the object is completely added to the scene
     bool registered;
@@ -34,6 +35,8 @@ private:
 
     // Parent of the object (if it has one)
     Object *parent;
+    // Parent that the object will move to
+    Object *newParent;
     // True if the object has a parent
     bool hasParent;
 
@@ -52,6 +55,8 @@ private:
 
     // True if the object is marked to be deleted (if it's true the object will be deleted at the end of the frame)
     bool toBeDeleted;
+    // True if the object is marked to change its parent (if it's true the object will change it's parent at the end of the frame)
+    bool toChangeParent;
     // True if the object is marked to be moved to other layer (if it's true the object will be moved at the end of the frame)
     bool toBeMoved;
 
@@ -134,6 +139,8 @@ public:
 
     // True if the object is marked to be deleted
     bool IsMarkedToBeDeleted();
+    // True if the object is  marked to change its parent
+    bool IsMarkedToChangeParent();
     // True if the object is marked to be moved
     bool IsMarkedToBeMoved();
 };

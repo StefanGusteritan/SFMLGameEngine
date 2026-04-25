@@ -62,10 +62,12 @@ void Game::Run()
         // If the scene is scheduled to change, change the scene
         this->sceneManager.SetActiveScene();
 
+        // Move the objects that are marked to their new layer in the active scene
+        this->sceneManager.MoveObjects();
+        // Move the objects that are marked to their new parent in the active scene
+        this->sceneManager.ChangeParents();
         // Delete the objects that are marked to be deleted in the active scene
         this->sceneManager.DeleteObjects();
-        // Move the objects that are marked to be deleted in the active scene
-        this->sceneManager.MoveObjects();
 
         // Update and draw the frame
         this->Update();

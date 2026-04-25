@@ -6,11 +6,13 @@ Object::Object() : name("Object"), hasParent(false), parent(nullptr)
 {
     // Initialize default values
     this->layer = 0;
-    this->oldLayer = 0;
+    this->newLayer = 0;
     this->registered = false;
     this->active = true;
     this->visible = true;
+    this->newParent = nullptr;
     this->toBeDeleted = false;
+    this->toChangeParent = false;
     this->toBeMoved = false;
 
     // Initialize local transform
@@ -31,11 +33,13 @@ Object::Object(std::string name) : name(name), hasParent(false), parent(nullptr)
 {
     // Initialize default values
     this->layer = 0;
-    this->oldLayer = 0;
+    this->newLayer = 0;
     this->registered = false;
     this->active = true;
     this->visible = true;
+    this->newParent = nullptr;
     this->toBeDeleted = false;
+    this->toChangeParent = false;
     this->toBeMoved = false;
 
     // Initialize local transform
@@ -56,11 +60,13 @@ Object::Object(int layer) : name("Object"), hasParent(false), parent(nullptr)
 {
     // Initialize default values
     this->layer = layer;
-    this->oldLayer = 0;
+    this->newLayer = 0;
     this->registered = false;
     this->active = true;
     this->visible = true;
+    this->newParent = nullptr;
     this->toBeDeleted = false;
+    this->toChangeParent = false;
     this->toBeMoved = false;
 
     // Initialize local transform
@@ -80,11 +86,13 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
 {
     // Initialize default values
     this->layer = 0;
-    this->oldLayer = 0;
+    this->newLayer = 0;
     this->registered = false;
     this->active = true;
     this->visible = true;
+    this->newParent = nullptr;
     this->toBeDeleted = false;
+    this->toChangeParent = false;
     this->toBeMoved = false;
 
     // Initialize local transform
@@ -126,11 +134,13 @@ Object::Object(std::string name, int layer) : name(name), hasParent(false), pare
 {
     // Initialize default values
     this->layer = layer;
-    this->oldLayer = 0;
+    this->newLayer = 0;
     this->registered = false;
     this->active = true;
     this->visible = true;
+    this->newParent = nullptr;
     this->toBeDeleted = false;
+    this->toChangeParent = false;
     this->toBeMoved = false;
 
     // Initialize local transform
@@ -151,11 +161,13 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
 {
     // Initialize default values
     this->layer = 0;
-    this->oldLayer = 0;
+    this->newLayer = 0;
     this->registered = false;
     this->active = true;
     this->visible = true;
+    this->newParent = nullptr;
     this->toBeDeleted = false;
+    this->toChangeParent = false;
     this->toBeMoved = false;
 
     // Initialize local transform
@@ -197,11 +209,13 @@ Object::Object(int layer, Object *parent) : name("Object"), hasParent(parent != 
 {
     // Initialize default values
     this->layer = layer;
-    this->oldLayer = 0;
+    this->newLayer = 0;
     this->registered = false;
     this->active = true;
     this->visible = true;
+    this->newParent = nullptr;
     this->toBeDeleted = false;
+    this->toChangeParent = false;
     this->toBeMoved = false;
 
     // Initialize local transform
@@ -243,11 +257,13 @@ Object::Object(std::string name, int layer, Object *parent) : name(name), hasPar
 {
     // Initialize default values
     this->layer = layer;
-    this->oldLayer = 0;
+    this->newLayer = 0;
     this->registered = false;
     this->active = true;
     this->visible = true;
+    this->newParent = nullptr;
     this->toBeDeleted = false;
+    this->toChangeParent = false;
     this->toBeMoved = false;
 
     // Initialize local transform
@@ -354,9 +370,6 @@ void Object::OnEvent(sf::Event event)
 
 void Object::Update()
 {
-    if (!this->registered)
-        return;
-
     if (this->hasParent && parent != nullptr)
     {
         // Updates the global transform based of the parent transform
@@ -399,6 +412,13 @@ void Object::Update()
             continue;
         }
 
+        if (!c->registered)
+        {
+            std::cout << "Failed to update: " << c->name << '-' << c
+                      << " (Not registered to the scene)" << std::endl;
+            continue;
+        }
+
         if (c->active)
             c->Update();
     }
@@ -406,9 +426,6 @@ void Object::Update()
 
 void Object::Draw(sf::RenderWindow &window)
 {
-    if (!this->registered)
-        return;
-
     // Draw the children of the object
     for (auto c : this->children)
     {
@@ -416,6 +433,13 @@ void Object::Draw(sf::RenderWindow &window)
         if (!c)
         {
             std::cout << "Failed to draw child (NULL pointer)" << std::endl;
+            continue;
+        }
+
+        if (!c->registered)
+        {
+            std::cout << "Failed to draw: " << c->name << '-' << c
+                      << " (Not registered to the scene)" << std::endl;
             continue;
         }
 
@@ -529,6 +553,11 @@ bool Object::IsMarkedToBeDeleted()
     return this->toBeDeleted;
 }
 
+bool Object::IsMarkedToChangeParent()
+{
+    return this->toChangeParent;
+}
+
 bool Object::IsMarkedToBeMoved()
 {
     return this->toBeMoved;
@@ -574,11 +603,11 @@ void SpriteObject::Update()
 
 void SpriteObject::Draw(sf::RenderWindow &window)
 {
-    // Draw the children of the object
-    this->Object::Draw(window);
-
     // Draw the sprite
     window.draw(this->sprite);
+
+    // Draw the children of the object
+    this->Object::Draw(window);
 }
 
 // TextObject

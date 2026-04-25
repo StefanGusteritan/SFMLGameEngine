@@ -12,6 +12,8 @@ private:
 
     // Objects that need to be deleted
     std::vector<Object *> objectsToDelete;
+    // Object that need to change parent
+    std::vector<Object *> objectsToChangeParent;
     // Objects that need to be moved from a layer to another
     std::vector<Object *> objectsToMove;
 
@@ -32,7 +34,12 @@ private:
     // Delete the object that are not used (object from the list)
     void DeleteObjects(bool removeFromScene = true);
 
-    // Set an object's layer
+    // Set an objects parent
+    void SetObjectParent(Object *p, Object *o);
+    // Change the parents of the objects marked
+    void ChangeParents();
+
+    // Set an objects layer
     void SetObjectLayer(int layer, Object *o);
     // Move the object marked to their new layers
     void MoveObjects();
@@ -113,7 +120,9 @@ private:
 
     // Delete the objects that are marked to be deleted
     void DeleteObjects();
-    // Move the objects that are marked to be moved
+    // Move the objects that are marled to be moved to their new parent
+    void ChangeParents();
+    // Move the objects that are marked to be moved to their new layer
     void MoveObjects();
 
     friend class Game;
@@ -131,6 +140,9 @@ public:
     void AddObject(Object *o);
     // Remove objects from the scene and parent and add them to the list of Objects to Delete
     void RemoveObject(Object *o);
+
+    // Set the parent of the object
+    void SetObjectParent(Object *p, Object *o);
 
     // Sets the layer of the specified object
     void SetObjectLayer(int layer, Object *o);
