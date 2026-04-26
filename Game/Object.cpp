@@ -124,9 +124,6 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
 
         std::cout << "Created: " << this->name << '-' << this
                   << " with parent: " << parent->name << '-' << parent << std::endl;
-
-        // Add the object to its parent children list
-        parent->AddChild(this);
     }
 }
 
@@ -199,9 +196,6 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
 
         std::cout << "Created: " << this->name << '-' << this
                   << " with parent: " << parent->name << '-' << parent << std::endl;
-
-        // Add the object to its parent children list
-        parent->AddChild(this);
     }
 }
 
@@ -247,9 +241,6 @@ Object::Object(int layer, Object *parent) : name("Object"), hasParent(parent != 
 
         std::cout << "Created: " << this->name << '-' << this
                   << " with parent: " << parent->name << '-' << parent << std::endl;
-
-        // Add the object to its parent children list
-        parent->AddChild(this);
     }
 }
 
@@ -295,14 +286,30 @@ Object::Object(std::string name, int layer, Object *parent) : name(name), hasPar
 
         std::cout << "Created: " << this->name << '-' << this
                   << " with parent: " << parent->name << '-' << parent << std::endl;
-
-        // Add the object to its parent children list
-        parent->AddChild(this);
     }
 }
 
 Object::~Object()
 {
+    this->layer = 0;
+    this->newLayer = 0;
+    this->registered = false;
+    this->objectIndex = 0;
+    this->subscriberIndices.clear();
+    this->active = false;
+    this->visible = false;
+    this->parent = nullptr;
+    this->newParent = nullptr;
+    this->hasParent = false;
+    this->globalPosition = {0, 0};
+    this->globalRotation = 0;
+    this->globalScale = {0, 0};
+    this->position = {0, 0};
+    this->rotation = 0;
+    this->scale = {0, 0};
+    this->toBeDeleted = false;
+    this->toChangeParent = false;
+    this->toBeMoved = false;
     std::cout << "Deleted: " << this->name << '-' << this << std::endl;
 }
 
@@ -316,17 +323,22 @@ int Object::GetLayer()
     return this->layer;
 }
 
+bool Object::IsRegistered()
+{
+    return this->registered;
+}
+
 void Object::SetPosition(sf::Vector2f newPosition)
 {
     this->position = newPosition;
 }
 
-void Object::Move(sf::Vector2f direction, float speed)
+void Object::Move(sf::Vector2f direction, float speed, float dt)
 {
     float magnitude = sqrt(direction.x * direction.x + direction.y * direction.y);
     if (magnitude != 0)
         direction /= magnitude;
-    this->position += direction * speed;
+    this->position += direction * speed * dt;
 }
 
 void Object::SetRotation(float newRotation)
@@ -334,9 +346,9 @@ void Object::SetRotation(float newRotation)
     this->rotation = newRotation;
 }
 
-void Object::Rotate(float angle, float speed)
+void Object::Rotate(float angle, float speed, float dt)
 {
-    this->rotation += angle * speed;
+    this->rotation += angle * speed * dt;
 }
 
 void Object::SetScale(sf::Vector2f newScale)
@@ -370,13 +382,13 @@ void Object::OnEvent(sf::Event event)
 
 void Object::Update()
 {
-    if (this->hasParent && parent != nullptr)
+    if (this->hasParent && parent->IsRegistered())
     {
         // Updates the global transform based of the parent transform
 
         // Get the parent transform
         float parentRotation = this->parent->globalRotation;
-        float parentRotationRad = parentRotation * M_PI / 180;
+        float parentRotationRad = parentRotation * 3.14159265358979323846 / 180;
         sf::Vector2f parentPosition = this->parent->globalPosition;
         sf::Vector2f parentRight(cos(parentRotationRad), sin(parentRotationRad));
         sf::Vector2f parentUp(-parentRight.y, parentRight.x);
@@ -412,7 +424,7 @@ void Object::Update()
             continue;
         }
 
-        if (!c->registered)
+        if (!c->IsRegistered())
         {
             std::cout << "Failed to update: " << c->name << '-' << c
                       << " (Not registered to the scene)" << std::endl;
@@ -436,7 +448,7 @@ void Object::Draw(sf::RenderWindow &window)
             continue;
         }
 
-        if (!c->registered)
+        if (!c->IsRegistered())
         {
             std::cout << "Failed to draw: " << c->name << '-' << c
                       << " (Not registered to the scene)" << std::endl;
@@ -501,6 +513,11 @@ const std::vector<Object *> &Object::GetChildren()
     return this->children;
 }
 
+const std::vector<Object *> Object::GetChildrenToAdd()
+{
+    return std::vector<Object *>();
+}
+
 void Object::AddChild(Object *c)
 {
     // Verify the child to exist
@@ -511,6 +528,7 @@ void Object::AddChild(Object *c)
     }
 
     this->children.push_back(c);
+    c->objectIndex = this->children.size() - 1;
     std::cout << "Added: " << c->name << '-' << c
               << " to: " << this->name << '-' << this
               << " children list" << std::endl;
@@ -519,15 +537,15 @@ void Object::AddChild(Object *c)
 void Object::RemoveChild(Object *c)
 {
     // Verify the child to exist
-    if (!c)
+    if (!c || !c->IsRegistered())
     {
-        std::cout << "Failed to remove child (NULL pointer)" << std::endl;
+        std::cout << "Failed to remove child (NULL pointer or not registered)" << std::endl;
         return;
     }
 
-    // Find the child in the list of children and verify it to exist
-    auto it = std::find(this->children.begin(), this->children.end(), c);
-    if (it == this->children.end())
+    // Verify the child to be in the children list
+    size_t index = c->objectIndex;
+    if (!(index < this->children.size() && this->children[index] == c))
     {
         std::cout << "Failed to remove: " << c->name << '-' << c
                   << " from: " << this->name << '-' << this
@@ -536,7 +554,8 @@ void Object::RemoveChild(Object *c)
     }
 
     // Remove the child from the list of children
-    *it = this->children.back();
+    children.at(index) = this->children.back();
+    children.at(index)->objectIndex = index;
     this->children.pop_back();
     std::cout << "Removed: " << c->name << '-' << c
               << " from: " << this->name << '-' << this

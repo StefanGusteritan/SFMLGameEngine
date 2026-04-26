@@ -61,7 +61,7 @@ private:
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
                 moveDirection.y -= 1;
         }
-        Move(moveDirection, speed * game.time.GetDT());
+        Move(moveDirection, speed, game.time.GetDT());
 
         this->RectangleObject::Update();
     }

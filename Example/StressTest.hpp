@@ -18,7 +18,7 @@ public:
     void Update() override
     {
         // Spin the gun barrel locally - very visible now
-        this->Rotate(200.f, game.time.GetDT());
+        this->Rotate(200.f, 1, game.time.GetDT());
         this->RectangleObject::Update();
     }
 };
@@ -45,10 +45,12 @@ public:
         // Random movement
         this->velocity = {(float)(rand() % 100 + 50), (float)(rand() % 100 + 50)};
         this->rotationSpeed = (float)(rand() % 40 + 20);
+    }
 
-        // Add Children in Constructor
-        new ShipGun(this, sf::Color::Red, {20.f, -15.f});
-        new ShipGun(this, sf::Color::Red, {20.f, 15.f});
+    const std::vector<Object *> GetChildrenToAdd() override
+    {
+        return std::vector<Object *>{new ShipGun(this, sf::Color::Red, {20.f, -15.f}),
+                                     new ShipGun(this, sf::Color::Red, {20.f, 15.f})};
     }
 
     void Update() override
@@ -61,10 +63,10 @@ public:
             velocity.y *= -1;
 
         // 2. Continuous Rotation (makes guns orbit)
-        this->Rotate(rotationSpeed, game.time.GetDT());
+        this->Rotate(rotationSpeed, 1, game.time.GetDT());
 
         // 3. Movement
-        this->Move(velocity, game.time.GetDT());
+        this->Move(velocity, 1, game.time.GetDT());
 
         this->RectangleObject::Update();
     }
@@ -86,7 +88,7 @@ public:
     }
     void Update() override
     {
-        this->Rotate(-10.f, game.time.GetDT());
+        this->Rotate(-10.f, 1, game.time.GetDT());
         this->CircleObject::Update();
     }
 };
@@ -142,9 +144,9 @@ public:
                     station = new SpaceStation({960, 540});
                     game.sceneManager.AddObject(station);
 
-                    if (ship1)
+                    if (ship1->IsRegistered())
                         game.sceneManager.SetObjectParent(station, ship1);
-                    if (ship2)
+                    if (ship2->IsRegistered())
                         game.sceneManager.SetObjectParent(station, ship2);
                 }
             }

@@ -27,6 +27,10 @@ private:
 
     // True when the object is completely added to the scene
     bool registered;
+    // The index of the object in the layer or in its parent's children list
+    size_t objectIndex;
+    // The index of the object in the event's subscribers list of the events that is subscribed to
+    std::unordered_map<sf::Event::EventType, size_t> subscriberIndices;
 
     // Active state of the object (if it's false the update function will not be called)
     bool active;
@@ -83,12 +87,16 @@ protected:
     // Changes the local position of the Object
     void SetPosition(sf::Vector2f newPosition);
     // Moves the object from it's position in a direction with a specified speed
-    void Move(sf::Vector2f direction, float speed);
+    // dt - "Delta time" the time it took the last frame to get processed and rendered
+    // Used for conversion to pixel-per-second to pixel-per frame
+    void Move(sf::Vector2f direction, float speed, float dt);
 
     // Changes the local rotation of the Object
     void SetRotation(float newRotation);
     // Rotates the object form it's rotation twords an angle with a specified speed
-    void Rotate(float angle, float speed);
+    // dt - "Delta time" the time it took the last frame to get processed and rendered
+    // Used for conversion to pixel-per-second to pixel-per frame
+    void Rotate(float angle, float speed, float dt);
     // Changes the local scale of the Object
     void SetScale(sf::Vector2f newScale);
 
@@ -106,8 +114,14 @@ public:
     // Deconstructor
     virtual ~Object();
 
+    //  Get the name of the object
     std::string GetName();
+
+    // Get the layer the object is on
     int GetLayer();
+
+    // True if the object is registered and exists in a scene
+    bool IsRegistered();
 
     // True if the object is active
     bool IsActive();
@@ -134,6 +148,9 @@ public:
     // Return a list with the children of th parent
     const std::vector<Object *> &GetChildren();
 
+    // Return a list of objects that are supposed to be added as children when the object is registered
+    virtual const std::vector<Object *> GetChildrenToAdd();
+
     // Return a list with the events that the object is subscribed to
     virtual const std::vector<sf::Event::EventType> GetEventsToSubscribe();
 
@@ -148,14 +165,15 @@ public:
 // Object that has a sprite
 class SpriteObject : public Object
 {
+private:
+    // Draw the object
+    void Draw(sf::RenderWindow &window) override;
+
 protected:
     sf::Sprite sprite;
 
     // Update object each frame add changes to the sprite
     virtual void Update() override;
-
-    // Draw the object
-    void Draw(sf::RenderWindow &window) override;
 
 public:
     SpriteObject();
@@ -171,14 +189,15 @@ public:
 // Object that has a text
 class TextObject : public Object
 {
+private:
+    // Draw the object
+    void Draw(sf::RenderWindow &window) override;
+
 protected:
     sf::Text text;
 
     // Update object each frame add changes to the convex text
     virtual void Update() override;
-
-    // Draw the object
-    void Draw(sf::RenderWindow &window) override;
 
 public:
     TextObject();
@@ -194,14 +213,15 @@ public:
 // Object that has a circle shape
 class CircleObject : public Object
 {
+private:
+    // Draw the object
+    void Draw(sf::RenderWindow &window) override;
+
 protected:
     sf::CircleShape circle;
 
     // Update object each frame add changes to the circle
     virtual void Update() override;
-
-    // Draw the object
-    void Draw(sf::RenderWindow &window) override;
 
 public:
     CircleObject();
@@ -217,14 +237,15 @@ public:
 // Object that has a rectangle shape
 class RectangleObject : public Object
 {
+private:
+    // Draw the object
+    void Draw(sf::RenderWindow &window) override;
+
 protected:
     sf::RectangleShape rectangle;
 
     // Update object each frame add changes to the rectangle
     virtual void Update() override;
-
-    // Draw the object
-    void Draw(sf::RenderWindow &window) override;
 
 public:
     RectangleObject();
@@ -240,14 +261,15 @@ public:
 // Object that has a convex shape
 class ConvexObject : public Object
 {
+private:
+    // Draw the object
+    void Draw(sf::RenderWindow &window) override;
+
 protected:
     sf::ConvexShape convexShape;
 
     // Update object each frame add changes to the convex shape
     virtual void Update() override;
-
-    // Draw the object
-    void Draw(sf::RenderWindow &window) override;
 
 public:
     ConvexObject();

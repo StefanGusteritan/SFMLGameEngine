@@ -91,7 +91,7 @@ private:
             float distance = sqrt(direction.x * direction.x + direction.y * direction.y);
 
             if (distance >= targetOffset)
-                this->Move(direction, speed * game.time.GetDT());
+                this->Move(direction, speed, game.time.GetDT());
             else
             {
                 moving = false;

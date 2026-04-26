@@ -72,6 +72,9 @@ The root of all entities.
 - **`globalPosition`, `globalRotation`, `globalScale`**: These are recalculated every frame. Use these for distance checks or collision logic.
 - **`active`**: Toggles whether `Update()` and `OnEvent()` run.
 - **`visible`**: Toggles whether `Draw()` runs.
+- **`Move(direction, speed, dt)`**: Moves the object. Now requires `dt` (Delta Time) to ensure framerate independence.
+- **`Rotate(angle, speed, dt)`**: Rotates the object. Now requires `dt`.
+- **`GetChildrenToAdd()`**: Override this to return a list of children that should be automatically registered when the parent is added to a scene.
 - **`Update()`**: **CRITICAL**: Always call `BaseClass::Update()` (e.g., `RectangleObject::Update()`) at the end of your override to ensure children update.
 
 ### 4.2 `SceneManager` Class
@@ -126,7 +129,7 @@ public:
     // Add the logic for this object (This will be called every frame)
     void Update() override {
         // Move 100 pixels per second to the right
-        this->Move({1, 0}, 100 * game.time.GetDT());
+        this->Move({1, 0}, 100, game.time.GetDT());
         this->RectangleObject::Update(); // Crucial!
     }
 };
@@ -189,6 +192,7 @@ mousePos -= game.sceneManager.GetCamera().getSize() / 2.f;
 
 - **Don't `delete` Registered Objects**: This will cause the engine to crash when it tries to update the now-deleted memory.
 - **Don't Change Hierarchy Directly**: Use `game.sceneManager.SetObjectParent` instead of modifying `children` vectors manually.
+- **Avoid Manipulating objects outside of their class**: By calling `game.sceneManager.SetObjectLayer` or `~.SetObjectParent` or `~.RemoveObject` and passing a pointer to another object as an argument to those functions you can get unexpected behavior (if the object was deleted and another one was added at the same address). Define a function inside of the object's class and use that as a trigger
 - **Don't Ignore Layers**: Keep your UI on high layers (e.g., Layer 10+) and background on Layer 0.
 - **Don't perform heavy logic in `Draw()`**: Keep `Draw` for rendering only; use `Update` for calculations.
 

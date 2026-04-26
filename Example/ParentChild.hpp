@@ -78,14 +78,14 @@ private:
             moveDirection.y += 1;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
             moveDirection.y -= 1;
-        Move(moveDirection, speed * game.time.GetDT());
+        Move(moveDirection, speed, game.time.GetDT());
 
         float rotateDirection = 0;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
             rotateDirection += 1;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
             rotateDirection -= 1;
-        this->Rotate(rotateDirection, speed * game.time.GetDT());
+        this->Rotate(rotateDirection, speed, game.time.GetDT());
 
         sf::Vector2f scaleDirection = sf::Vector2f(0, 0);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::F))
