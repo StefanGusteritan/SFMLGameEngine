@@ -24,14 +24,14 @@ private:
 
     void Select()
     {
-        std::cout << "Troop: " << this << " selected\n";
+        LOG("Troop: " << this << " selected");
         selected = true;
         this->rectangle.setFillColor(sf::Color::Blue);
     }
 
     void Deselect()
     {
-        std::cout << "Troop: " << this << " deselected\n";
+        LOG("Troop: " << this << " deselected");
         selected = false;
         this->rectangle.setFillColor(sf::Color::White);
     }
@@ -62,7 +62,7 @@ private:
                     Deselect();
                     moving = true;
                     target = mousePosition;
-                    std::cout << "Troop: " << this << " target set to (" << target.x << ' ' << target.y << ')' << std::endl;
+                    LOG("Troop: " << this << " target set to (" << target.x << ' ' << target.y << ')');
                 }
             }
         }
@@ -95,7 +95,7 @@ private:
             else
             {
                 moving = false;
-                std::cout << "Troop: " << this << " reached target\n";
+                LOG("Troop: " << this << " reached target");
             }
         }
 

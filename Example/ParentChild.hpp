@@ -42,7 +42,6 @@ public:
         this->rectangle.setFillColor(sf::Color::Blue);
         this->rectangle.setOrigin(size / 2, size / 2);
         this->SetPosition(sf::Vector2f(960, 540));
-        new TestChild(this);
     }
 
     const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
@@ -62,6 +61,10 @@ private:
                     game.sceneManager.SetObjectLayer(0, this);
                 else
                     game.sceneManager.RemoveObject(this);
+            }
+            else if (event.key.code == sf::Keyboard::X)
+            {
+                game.sceneManager.AddObject(nullptr);
             }
     }
 

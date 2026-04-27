@@ -30,7 +30,7 @@ Scene::Scene(std::string name, sf::Vector2f cameraSize, sf::Vector2f cameraCente
     this->camera.setSize(cameraSize);
     this->camera.setCenter(cameraCenter);
 
-    std::cout << "Created: " << this->name << '-' << this << std::endl;
+    LOG("Created: " << this->name << '-' << this);
 }
 
 Scene::~Scene()
@@ -50,7 +50,7 @@ Scene::~Scene()
     this->camera = sf::View();
     this->eventSubscribers.clear();
 
-    std::cout << "Deleted: " << this->name << '-' << this << std::endl;
+    LOG("Deleted: " << this->name << '-' << this);
 }
 
 std::string Scene::GetName()
@@ -63,7 +63,7 @@ void Scene::SubscribeToEvents(Object *o)
     // Verify the object to exist
     if (!o || !o->IsRegistered())
     {
-        std::cout << "Failed to subscribe object to events (NULL pointer or not registered)" << std::endl;
+        LOG_ERR("Failed to subscribe object to events (NULL pointer or not registered)");
         return;
     }
 
@@ -75,8 +75,8 @@ void Scene::SubscribeToEvents(Object *o)
     {
         this->eventSubscribers[event].push_back(o);
         o->subscriberIndices[event] = this->eventSubscribers[event].size() - 1;
-        std::cout << "Subscribed: " << o->name << '-' << o
-                  << " to event: " << event << std::endl;
+        LOG("Subscribed: " << o->name << '-' << o
+                           << " to event: " << event);
     }
 }
 
@@ -84,7 +84,7 @@ void Scene::UnsubscribeFromEvents(Object *o)
 {
     if (!o || !o->IsRegistered())
     {
-        std::cout << "Failed to unsubscribe object from events (NULL pointer or not registered)" << std::endl;
+        LOG_ERR("Failed to unsubscribe object from events (NULL pointer or not registered)");
         return;
     }
 
@@ -99,9 +99,9 @@ void Scene::UnsubscribeFromEvents(Object *o)
         auto &subs = this->eventSubscribers[event];
         if (!(index < subs.size() && subs[index] == o))
         {
-            std::cout << "Failed to unsubscribe: " << o->name << '-' << o
-                      << " from event: " << event
-                      << " (Not found in subscribers list)" << std::endl;
+            LOG_ERR("Failed to unsubscribe: " << o->name << '-' << o
+                                              << " from event: " << event
+                                              << " (Not found in subscribers list)");
             continue;
         }
 
@@ -110,8 +110,8 @@ void Scene::UnsubscribeFromEvents(Object *o)
         subs.at(index)->subscriberIndices[event] = index;
         subs.pop_back();
         o->subscriberIndices.erase(event);
-        std::cout << "Unsubscribed: " << o->name << '-' << o
-                  << " from event: " << event << std::endl;
+        LOG("Unsubscribed: " << o->name << '-' << o
+                             << " from event: " << event);
     }
 }
 
@@ -120,16 +120,16 @@ void Scene::AddObject(Object *o)
     // Verify the object to exist
     if (!o)
     {
-        std::cout << "Failed to add object to: " << this->name << '-' << this
-                  << " objects list (NULL pointer)" << std::endl;
+        LOG_ERR("Failed to add object to: " << this->name << '-' << this
+                                            << " objects list (NULL pointer)");
         return;
     }
 
     if (o->registered)
     {
-        std::cout << "Failed to add: " << o->name << '-' << o
-                  << " to: " << this->name << '-' << this
-                  << " objects list (Already registered)" << std::endl;
+        LOG_ERR("Failed to add: " << o->name << '-' << o
+                                  << " to: " << this->name << '-' << this
+                                  << " objects list (Already registered)");
         return;
     }
 
@@ -143,10 +143,10 @@ void Scene::AddObject(Object *o)
         p->AddChild(o);
 
         if (p->layer != o->layer)
-            std::cout << o->name << '-' << o
-                      << " cannot be on a different layer than its parent: " << p->name << '-' << p
-                      << " Setting layer from: " << o->layer
-                      << " to: " << p->layer << std::endl;
+            LOG(o->name << '-' << o
+                        << " cannot be on a different layer than its parent: " << p->name << '-' << p
+                        << " Setting layer from: " << o->layer
+                        << " to: " << p->layer);
         o->layer = p->layer;
     }
     // If the object is not a child add it to the scene
@@ -155,8 +155,8 @@ void Scene::AddObject(Object *o)
         // If the object was marked ass a child but it dose not have a parent mark it as a root object
         if (o->hasParent)
         {
-            std::cout << "Failed to add: " << o->name << '-' << o
-                      << " to children list (NULL pointer to parent) - Adding to scene instead";
+            LOG_ERR("Failed to add: " << o->name << '-' << o
+                                      << " to children list (NULL pointer to parent) - Adding to scene instead");
 
             o->hasParent = false;
         }
@@ -164,9 +164,9 @@ void Scene::AddObject(Object *o)
         // Add the object to the scene
         this->layers[o->layer].push_back(o);
         o->objectIndex = this->layers[o->layer].size() - 1;
-        std::cout << "Added: " << o->name << '-' << o
-                  << " to: " << this->name << '-' << this
-                  << " objects list-layer: " << o->layer << std::endl;
+        LOG("Added: " << o->name << '-' << o
+                      << " to: " << this->name << '-' << this
+                      << " objects list-layer: " << o->layer);
     }
 
     // Mark the object as registered
@@ -186,16 +186,16 @@ void Scene::RemoveObject(Object *o)
     // Verify the object to exist
     if (!o || !o->IsRegistered())
     {
-        std::cout << "Failed to remove object from: " << this->name << '-' << this
-                  << " (NULL pointer or not registered)" << std::endl;
+        LOG_ERR("Failed to remove object from: " << this->name << '-' << this
+                                                 << " (NULL pointer or not registered)");
         return;
     }
 
     // Verify if the object is already marked to be deleted
     if (o->toBeDeleted)
     {
-        std::cout << "Failed to mark: " << o->name << '-' << o
-                  << " to be deleted (Already marked to be deleted)" << std::endl;
+        LOG_ERR("Failed to mark: " << o->name << '-' << o
+                                   << " to be deleted (Already marked to be deleted)");
         return;
     }
 
@@ -203,8 +203,8 @@ void Scene::RemoveObject(Object *o)
     o->toBeDeleted = true;
     // Add the object to the delete list
     this->objectsToDelete.push_back(o);
-    std::cout << "Marked: " << o->name << '-' << o
-              << " to be deleted" << std::endl;
+    LOG("Marked: " << o->name << '-' << o
+                   << " to be deleted");
 }
 
 void Scene::DeleteObjects(bool removeFromScene)
@@ -222,8 +222,8 @@ void Scene::DeleteObjects(bool removeFromScene)
             p = p->parent;
         if (p && p->IsRegistered())
         {
-            std::cout << "Failed to delete: " << o->name << '-' << o
-                      << " (Will be deleted with its ancestor: " << p << ")" << std::endl;
+            LOG_ERR("Failed to delete: " << o->name << '-' << o
+                                         << " (Will be deleted with its ancestor: " << p << ")");
             objectsToDelete[i] = nullptr;
         }
     }
@@ -252,7 +252,8 @@ void Scene::DeleteObjects(bool removeFromScene)
             allChildren.insert(allChildren.end(), children.begin(), children.end());
             c->children.clear();
 
-            this->UnsubscribeFromEvents(c);
+            if (removeFromScene)
+                this->UnsubscribeFromEvents(c);
 
             delete c;
         }
@@ -269,8 +270,8 @@ void Scene::DeleteObjects(bool removeFromScene)
                 Object *p = o->parent;
                 if (!p || !p->IsRegistered())
                 {
-                    std::cout << "Failed to remove: " << o->name << '-' << o
-                              << " from children list (NULL pointer to parent or not registered parent)" << std::endl;
+                    LOG_ERR("Failed to remove: " << o->name << '-' << o
+                                                 << " from children list (NULL pointer to parent or not registered parent)");
 
                     // Unsubscribe the object from the events that it was subscribed to
                     this->UnsubscribeFromEvents(o);
@@ -291,10 +292,10 @@ void Scene::DeleteObjects(bool removeFromScene)
                 size_t index = o->objectIndex;
                 if (!(index < layer.size() && layer[index] == o))
                 {
-                    std::cout << "Failed to remove: " << o->name << '-' << o
-                              << " from: " << this->name << '-' << this
-                              << " objects list-layer: " << l
-                              << " (Not found in list)" << std::endl;
+                    LOG_ERR("Failed to remove: " << o->name << '-' << o
+                                                 << " from: " << this->name << '-' << this
+                                                 << " objects list-layer: " << l
+                                                 << " (Not found in list)");
 
                     // Unsubscribe the object from the events that it was subscribed to
                     this->UnsubscribeFromEvents(o);
@@ -307,9 +308,9 @@ void Scene::DeleteObjects(bool removeFromScene)
                 layer.at(index) = layer.back();
                 layer.at(index)->objectIndex = index;
                 layer.pop_back();
-                std::cout << "Removed: " << o->name << '-' << o
-                          << " from: " << this->name << '-' << this
-                          << " objects list-layer: " << l << std::endl;
+                LOG("Removed: " << o->name << '-' << o
+                                << " from: " << this->name << '-' << this
+                                << " objects list-layer: " << l);
             }
 
             // Unsubscribe the object from the events that it was subscribed to
@@ -327,14 +328,14 @@ void Scene::SetObjectParent(Object *p, Object *o)
     // Verify the object to exist
     if (!o || !o->IsRegistered())
     {
-        std::cout << "Failed to set objects parent (NULL pointer or not registered)" << std::endl;
+        LOG_ERR("Failed to set objects parent (NULL pointer or not registered)");
         return;
     }
 
     if (p && !p->IsRegistered())
     {
-        std::cout << "Failed to set: " << o->name << '-' << o
-                  << " parent (parent not registered)" << std::endl;
+        LOG_ERR("Failed to set: " << o->name << '-' << o
+                                  << " parent (parent not registered)");
         return;
     }
 
@@ -342,13 +343,13 @@ void Scene::SetObjectParent(Object *p, Object *o)
     if (o->toChangeParent)
     {
         if (!p)
-            std::cout << "Failed to set: " << o->name << '-' << o
-                      << " parent to: (No parent)"
-                      << " (Already marked to change parent)";
+            LOG_ERR("Failed to set: " << o->name << '-' << o
+                                      << " parent to: (No parent)"
+                                      << " (Already marked to change parent)");
         else
-            std::cout << "Failed to set: " << o->name << '-' << o
-                      << " parent to: " << p->name << '-' << p
-                      << " (Already marked to change parent)";
+            LOG_ERR("Failed to set: " << o->name << '-' << o
+                                      << " parent to: " << p->name << '-' << p
+                                      << " (Already marked to change parent)");
         return;
     }
 
@@ -356,12 +357,12 @@ void Scene::SetObjectParent(Object *p, Object *o)
     if (o->parent == p)
     {
         if (!p)
-            std::cout << "Failed to set: " << o->name << '-' << o
-                      << " parent (Already has this parent: (No parent))" << std::endl;
+            LOG_ERR("Failed to set: " << o->name << '-' << o
+                                      << " parent (Already has this parent: (No parent))");
 
         else
-            std::cout << "Failed to set: " << o->name << '-' << o
-                      << " parent (Already has this parent: " << p->name << '-' << p << ')' << std::endl;
+            LOG_ERR("Failed to set: " << o->name << '-' << o
+                                      << " parent (Already has this parent: " << p->name << '-' << p << ')');
         return;
     }
 
@@ -375,18 +376,18 @@ void Scene::SetObjectParent(Object *p, Object *o)
     if (o->hasParent && o->parent->IsRegistered())
     {
         if (p)
-            std::cout << "Marked: " << o->name << '-' << o
-                      << " to change parent from: " << o->parent->name << '-' << o->parent
-                      << " to: " << p->name << '-' << p << std::endl;
+            LOG("Marked: " << o->name << '-' << o
+                           << " to change parent from: " << o->parent->name << '-' << o->parent
+                           << " to: " << p->name << '-' << p);
         else
-            std::cout << "Marked: " << o->name << '-' << o
-                      << " to change parent from: " << o->parent->name << '-' << o->parent
-                      << " to: (No parent)" << std::endl;
+            LOG("Marked: " << o->name << '-' << o
+                           << " to change parent from: " << o->parent->name << '-' << o->parent
+                           << " to: (No parent)");
     }
     else
-        std::cout << "Marked: " << o->name << '-' << o
-                  << " to change parent from: (No parent)"
-                  << " to: " << p->name << '-' << p << std::endl;
+        LOG("Marked: " << o->name << '-' << o
+                       << " to change parent from: (No parent)"
+                       << " to: " << p->name << '-' << p);
 }
 
 void Scene::ChangeParents()
@@ -400,7 +401,7 @@ void Scene::ChangeParents()
         // Verify the object to exist
         if (!o || !o->IsRegistered())
         {
-            std::cout << "Failed to change objects parent (NULL pointer or not registered)" << std::endl;
+            LOG_ERR("Failed to change objects parent (NULL pointer or not registered)");
             continue;
         }
 
@@ -408,7 +409,7 @@ void Scene::ChangeParents()
         {
             o->newParent = nullptr;
             o->toChangeParent = false;
-            std::cout << "Failed to change objects parent (NULL pointer or not registered)" << std::endl;
+            LOG_ERR("Failed to change objects parent (NULL pointer or not registered)");
             continue;
         }
 
@@ -418,9 +419,9 @@ void Scene::ChangeParents()
             np = np->parent;
         if (np)
         {
-            std::cout << "Failed to change: " << o->name << '-' << o
-                      << " parent to: " << o->newParent->name << '-' << o->newParent
-                      << " (Cannot have its own descendant as its parent)" << std::endl;
+            LOG_ERR("Failed to change: " << o->name << '-' << o
+                                         << " parent to: " << o->newParent->name << '-' << o->newParent
+                                         << " (Cannot have its own descendant as its parent)");
             o->newParent = nullptr;
             o->toChangeParent = false;
             continue;
@@ -445,9 +446,9 @@ void Scene::ChangeParents()
             auto &layer = this->layers[l];
             if (!(index < layer.size() && layer[index] == o))
             {
-                std::cout << "Failed to remove: " << o->name << '-' << o
-                          << " from: " << this->name << '-' << this
-                          << " layer: " << l << std::endl;
+                LOG_ERR("Failed to remove: " << o->name << '-' << o
+                                             << " from: " << this->name << '-' << this
+                                             << " layer: " << l);
             }
             else
             {
@@ -467,10 +468,10 @@ void Scene::ChangeParents()
             if (o->layer != p->layer)
             {
                 o->layer = p->layer;
-                std::cout << "Moved: " << o->name << '-' << o
-                          << " from: " << this->name << '-' << this
-                          << " layer: " << l
-                          << " to its new parent's layer: " << o->layer << std::endl;
+                LOG("Moved: " << o->name << '-' << o
+                              << " from: " << this->name << '-' << this
+                              << " layer: " << l
+                              << " to its new parent's layer: " << o->layer);
 
                 // Move all objects children and all of their children
                 std::vector<Object *> allChildren = o->GetChildren();
@@ -485,10 +486,10 @@ void Scene::ChangeParents()
                     allChildren.insert(allChildren.end(), children.begin(), children.end());
 
                     c->layer = o->layer;
-                    std::cout << "Moved: " << c->name << '-' << c
-                              << " from: " << this->name << '-' << this
-                              << " layer: " << l
-                              << " to its new parent's layer: " << c->layer << std::endl;
+                    LOG("Moved: " << c->name << '-' << c
+                                  << " from: " << this->name << '-' << this
+                                  << " layer: " << l
+                                  << " to its new parent's layer: " << c->layer);
                 }
                 allChildren.clear();
             }
@@ -500,9 +501,9 @@ void Scene::ChangeParents()
             this->layers[l].push_back(o);
             o->objectIndex = this->layers[l].size() - 1;
 
-            std::cout << "Added: " << o->name << '-' << o
-                      << " to: " << this->name << '-' << this
-                      << " layer: " << l << std::endl;
+            LOG("Added: " << o->name << '-' << o
+                          << " to: " << this->name << '-' << this
+                          << " layer: " << l);
         }
     }
 
@@ -514,23 +515,23 @@ void Scene::SetObjectLayer(int layer, Object *o)
     // Verify the object to exist
     if (!o || !o->IsRegistered())
     {
-        std::cout << "Failed to set layer of object (NULL pointer or not registered)" << std::endl;
+        LOG_ERR("Failed to set layer of object (NULL pointer or not registered)");
         return;
     }
 
     // Verify it not to be already marked to be moved
     if (o->toBeMoved)
     {
-        std::cout << "Failed to set layer of: " << o->name << '-' << o
-                  << " (Already marked to be moved to layer: " << o->layer << ")" << std::endl;
+        LOG_ERR("Failed to set layer of: " << o->name << '-' << o
+                                           << " (Already marked to be moved to layer: " << o->layer << ")");
         return;
     }
 
     // Verify the new layer is different from the old one
     if (o->layer == layer)
     {
-        std::cout << "Failed to set layer of: " << o->name << '-' << o
-                  << "(Already on this layer: " << layer << ")" << std::endl;
+        LOG_ERR("Failed to set layer of: " << o->name << '-' << o
+                                           << "(Already on this layer: " << layer << ")");
         return;
     }
 
@@ -540,20 +541,21 @@ void Scene::SetObjectLayer(int layer, Object *o)
         Object *p = o->parent;
         if (!p || !p->IsRegistered())
         {
-            std::cout << "Failed to set layer of: " << o->name << '-' << o
-                      << " (NULL pointer to parent or not registered parent)" << std::endl;
+            LOG_ERR("Failed to set layer of: " << o->name << '-' << o
+                                               << " (NULL pointer to parent or not registered parent)");
             return;
         }
 
         if (p->toBeMoved)
-            std::cout << "Failed to set layer of: " << o->name << '-' << o
-                      << " (Cannot be on a different layer than its parent: " << p->name << '-' << p
-                      << ") Moving with the parent on layer: " << p->newLayer << std::endl;
-
+        {
+            LOG_ERR("Failed to set layer of: " << o->name << '-' << o
+                                               << " (Cannot be on a different layer than its parent: " << p->name << '-' << p
+                                               << ") Moving with the parent on layer: " << p->newLayer);
+        }
         else
-            std::cout << "Failed to set layer of: " << o->name << '-' << o
-                      << " (Cannot be on a different layer than its parent: " << p->name << '-' << p
-                      << ") Remaining on layer: " << p->layer << std::endl;
+            LOG_ERR("Failed to set layer of: " << o->name << '-' << o
+                                               << " (Cannot be on a different layer than its parent: " << p->name << '-' << p
+                                               << ") Remaining on layer: " << p->layer);
 
         return;
     }
@@ -565,9 +567,9 @@ void Scene::SetObjectLayer(int layer, Object *o)
     // Set the objects new layer to be added to
     o->newLayer = layer;
 
-    std::cout << "Marked: " << o->name << '-' << o
-              << " to move from layer: " << o->layer
-              << " to: " << o->newLayer << std::endl;
+    LOG("Marked: " << o->name << '-' << o
+                   << " to move from layer: " << o->layer
+                   << " to: " << o->newLayer);
 }
 
 void Scene::MoveObjects()
@@ -581,7 +583,7 @@ void Scene::MoveObjects()
         // Verify the object to exist
         if (!o || !o->IsRegistered())
         {
-            std::cout << "Failed to move object (NULL pointer or not registered)" << std::endl;
+            LOG_ERR("Failed to move object (NULL pointer or not registered)");
             continue;
         }
 
@@ -596,10 +598,10 @@ void Scene::MoveObjects()
         auto &layer = this->layers[ol];
         if (!(index < layer.size() && layer[index] == o))
         {
-            std::cout << "Failed to move: " << o->name << '-' << o
-                      << " from: " << this->name << '-' << this
-                      << " layer: " << ol << " to layer: " << l
-                      << " (Not found in list)";
+            LOG_ERR("Failed to move: " << o->name << '-' << o
+                                       << " from: " << this->name << '-' << this
+                                       << " layer: " << ol << " to layer: " << l
+                                       << " (Not found in list)");
         }
         else
         {
@@ -613,9 +615,9 @@ void Scene::MoveObjects()
         this->layers[l].push_back(o);
         o->objectIndex = this->layers[l].size() - 1;
 
-        std::cout << "Moved: " << o->name << '-' << o
-                  << " from: " << this->name << '-' << this
-                  << " layer: " << ol << " to layer: " << l << std::endl;
+        LOG("Moved: " << o->name << '-' << o
+                      << " from: " << this->name << '-' << this
+                      << " layer: " << ol << " to layer: " << l);
 
         // Move all objects children and all of their children
         std::vector<Object *> allChildren = o->GetChildren();
@@ -630,10 +632,10 @@ void Scene::MoveObjects()
             allChildren.insert(allChildren.end(), children.begin(), children.end());
 
             c->layer = o->layer;
-            std::cout << "Moved: " << c->name << '-' << c
-                      << " from: " << this->name << '-' << this
-                      << " layer: " << ol
-                      << " to its new parent's layer: " << c->layer << std::endl;
+            LOG("Moved: " << c->name << '-' << c
+                          << " from: " << this->name << '-' << this
+                          << " layer: " << ol
+                          << " to its new parent's layer: " << c->layer);
         }
         allChildren.clear();
     }
@@ -648,7 +650,7 @@ void Scene::OnEvent(sf::Event event)
         // Verify the object to exist
         if (!o || !o->IsRegistered())
         {
-            std::cout << "Failed to call object OnEvent() (NULL pointer or not registered)" << std::endl;
+            LOG_ERR("Failed to call object OnEvent() (NULL pointer or not registered)");
             continue;
         }
 
@@ -663,8 +665,8 @@ void Scene::OnEvent(sf::Event event)
 
         if (p && !p->IsRegistered())
         {
-            std::cout << "Failed to call: " << o->name << '-' << o
-                      << " OnEvent() (NULL pointer to parent or not registered parent)" << std::endl;
+            LOG_ERR("Failed to call: " << o->name << '-' << o
+                                       << " OnEvent() (NULL pointer to parent or not registered parent)");
             continue;
         }
 
@@ -683,14 +685,14 @@ void Scene::Update()
             // Verify the object to exist
             if (!o)
             {
-                std::cout << "Failed to update object (NULL pointer)" << std::endl;
+                LOG_ERR("Failed to update object (NULL pointer)");
                 continue;
             }
 
             if (!o->IsRegistered())
             {
-                std::cout << "Failed to update: " << o->name << '-' << o
-                          << " (Not registered to the scene)" << std::endl;
+                LOG_ERR("Failed to update: " << o->name << '-' << o
+                                             << " (Not registered to the scene)");
                 continue;
             }
 
@@ -707,14 +709,14 @@ void Scene::Draw(sf::RenderWindow &window)
             // Verify the object to exist
             if (!o)
             {
-                std::cout << "Failed to draw object (NULL pointer)" << std::endl;
+                LOG_ERR("Failed to draw object (NULL pointer)");
                 continue;
             }
 
             if (!o->IsRegistered())
             {
-                std::cout << "Failed to draw: " << o->name << '-' << o
-                          << " (Not registered to the scene)" << std::endl;
+                LOG_ERR("Failed to draw: " << o->name << '-' << o
+                                           << " (Not registered to the scene)");
                 continue;
             }
 
@@ -770,7 +772,7 @@ void SceneManager::SetActiveScene()
     // Verify the next scene to exist
     if (!nextScene)
     {
-        std::cout << "Failed to set scene (NULL pointer)" << std::endl;
+        LOG_ERR("Failed to set scene (NULL pointer)");
         return;
     }
 
@@ -782,8 +784,8 @@ void SceneManager::SetActiveScene()
     nextScene = nullptr;
     this->changingScene = false;
 
-    std::cout << "Active scene is set to: "
-              << activeScene->name << '-' << activeScene << std::endl;
+    LOG("Active scene is set to: "
+        << activeScene->name << '-' << activeScene);
 
     // Deletes the previous scene if it exists
     if (previousScene)
@@ -795,7 +797,7 @@ void SceneManager::AddObject(Object *o)
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to add object to active scene (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to add object to active scene (NULL pointer to scene)");
         return;
     }
 
@@ -808,7 +810,7 @@ void SceneManager::RemoveObject(Object *o)
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to remove object from active scene (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to remove object from active scene (NULL pointer to scene)");
         return;
     }
 
@@ -820,7 +822,7 @@ void SceneManager::SetObjectParent(Object *p, Object *o)
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to set objects parent in active scene (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to set objects parent in active scene (NULL pointer to scene)");
         return;
     }
 
@@ -832,7 +834,7 @@ void SceneManager::SetObjectLayer(int layer, Object *o)
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to set objects layer in active scene (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to set objects layer in active scene (NULL pointer to scene)");
         return;
     }
 
@@ -844,7 +846,7 @@ void SceneManager::DeleteObjects()
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to delete marked objects in active scene (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to delete marked objects in active scene (NULL pointer to scene)");
         return;
     }
 
@@ -856,7 +858,7 @@ void SceneManager::ChangeParents()
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to move marked objects to parents in active scene (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to move marked objects to parents in active scene (NULL pointer to scene)");
         return;
     }
 
@@ -868,7 +870,7 @@ void SceneManager::MoveObjects()
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to move marked objects to layers in active scene (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to move marked objects to layers in active scene (NULL pointer to scene)");
         return;
     }
 
@@ -880,7 +882,7 @@ void SceneManager::OnEvent(sf::Event event)
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to react to events from active scene's objects (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to react to events from active scene's objects (NULL pointer to scene)");
         return;
     }
 
@@ -893,7 +895,7 @@ void SceneManager::Update()
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to update scene objects (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to update scene objects (NULL pointer to scene)");
         return;
     }
 
@@ -906,7 +908,7 @@ void SceneManager::Draw(sf::RenderWindow &window)
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to draw scene objects (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to draw scene objects (NULL pointer to scene)");
         return;
     }
 
@@ -922,7 +924,7 @@ sf::View &SceneManager::GetCamera()
     // Verify the active scene to exist
     if (!this->activeScene)
     {
-        std::cout << "Failed to get active scene camera (NULL pointer to scene)" << std::endl;
+        LOG_ERR("Failed to get active scene camera (NULL pointer to scene)");
         return this->defaultCamera;
     }
 

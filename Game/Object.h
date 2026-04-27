@@ -1,5 +1,5 @@
 #pragma once
-#include <iostream>
+#include "Logger.h"
 #include <math.h>
 #include <vector>
 #include <string>

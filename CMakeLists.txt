@@ -17,6 +17,7 @@ set(SOURCES
     Example/main.cpp
     Example/TestGame.cpp
     Game/Game.cpp
+    Game/Logger.cpp
     Game/Object.cpp
     Game/Scene.cpp
     Game/TimeManager.cpp

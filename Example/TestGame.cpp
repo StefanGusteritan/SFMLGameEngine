@@ -40,10 +40,6 @@ SceneBuilder stressTestScene("Stress_Test",
                              []()
                              {
                                std::vector<Object *> obj;
-                               ComplexShip *s1 = new ComplexShip({400, 300}, 0, "Ship1");
-                               ComplexShip *s2 = new ComplexShip({400, 700}, 5, "Ship2");
-                               obj.push_back(s1);
-                               obj.push_back(s2);
-                               obj.push_back(new StressTestController(s1, s2));
+                               obj.push_back(new StressTestController());
                                return obj;
                              });

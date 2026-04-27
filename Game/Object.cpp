@@ -25,8 +25,7 @@ Object::Object() : name("Object"), hasParent(false), parent(nullptr)
     this->globalRotation = 0;
     this->globalScale = sf::Vector2f(1, 1);
 
-    std::cout << "Created: " << this->name << '-' << this
-              << " with no parent" << std::endl;
+    LOG("Created: " << this->name << '-' << this << " with no parent");
 }
 
 Object::Object(std::string name) : name(name), hasParent(false), parent(nullptr)
@@ -52,8 +51,7 @@ Object::Object(std::string name) : name(name), hasParent(false), parent(nullptr)
     this->globalRotation = 0;
     this->globalScale = sf::Vector2f(1, 1);
 
-    std::cout << "Created: " << this->name << '-' << this
-              << " with no parent" << std::endl;
+    LOG("Created: " << this->name << '-' << this << " with no parent");
 }
 
 Object::Object(int layer) : name("Object"), hasParent(false), parent(nullptr)
@@ -79,7 +77,7 @@ Object::Object(int layer) : name("Object"), hasParent(false), parent(nullptr)
     this->globalRotation = 0;
     this->globalScale = sf::Vector2f(1, 1);
 
-    std::cout << "Created: " << this->name << '-' << this << " with no parent" << std::endl;
+    LOG("Created: " << this->name << '-' << this << " with no parent");
 }
 
 Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), parent(parent)
@@ -110,8 +108,8 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
         this->globalRotation = 0;
         this->globalScale = sf::Vector2f(1, 1);
 
-        std::cout << "Created: " << this->name << '-' << this
-                  << " with no parent (NULL pointer)" << std::endl;
+        LOG("Created: " << this->name << '-' << this
+                        << " with no parent (NULL pointer)");
     }
     else
     {
@@ -122,8 +120,8 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
         this->globalRotation = this->parent->globalRotation;
         this->globalScale = this->parent->globalScale;
 
-        std::cout << "Created: " << this->name << '-' << this
-                  << " with parent: " << parent->name << '-' << parent << std::endl;
+        LOG("Created: " << this->name << '-' << this
+                        << " with parent: " << parent->name << '-' << parent);
     }
 }
 
@@ -150,8 +148,7 @@ Object::Object(std::string name, int layer) : name(name), hasParent(false), pare
     this->globalRotation = 0;
     this->globalScale = sf::Vector2f(1, 1);
 
-    std::cout << "Created: " << this->name << '-' << this
-              << " with no parent" << std::endl;
+    LOG("Created: " << this->name << '-' << this << " with no parent");
 }
 
 Object::Object(std::string name, Object *parent) : name(name), hasParent(parent != nullptr), parent(parent)
@@ -182,8 +179,8 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
         this->globalRotation = 0;
         this->globalScale = sf::Vector2f(1, 1);
 
-        std::cout << "Created: " << this->name << '-' << this
-                  << " with no parent (NULL pointer)" << std::endl;
+        LOG("Created: " << this->name << '-' << this
+                        << " with no parent (NULL pointer)");
     }
     else
     {
@@ -194,8 +191,8 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
         this->globalRotation = this->parent->globalRotation;
         this->globalScale = this->parent->globalScale;
 
-        std::cout << "Created: " << this->name << '-' << this
-                  << " with parent: " << parent->name << '-' << parent << std::endl;
+        LOG("Created: " << this->name << '-' << this
+                        << " with parent: " << parent->name << '-' << parent);
     }
 }
 
@@ -227,8 +224,8 @@ Object::Object(int layer, Object *parent) : name("Object"), hasParent(parent != 
         this->globalRotation = 0;
         this->globalScale = sf::Vector2f(1, 1);
 
-        std::cout << "Created: " << this->name << '-' << this
-                  << " with no parent (NULL pointer)" << std::endl;
+        LOG("Created: " << this->name << '-' << this
+                        << " with no parent (NULL pointer)");
     }
     else
     {
@@ -239,8 +236,8 @@ Object::Object(int layer, Object *parent) : name("Object"), hasParent(parent != 
         this->globalRotation = this->parent->globalRotation;
         this->globalScale = this->parent->globalScale;
 
-        std::cout << "Created: " << this->name << '-' << this
-                  << " with parent: " << parent->name << '-' << parent << std::endl;
+        LOG("Created: " << this->name << '-' << this
+                        << " with parent: " << parent->name << '-' << parent);
     }
 }
 
@@ -272,8 +269,8 @@ Object::Object(std::string name, int layer, Object *parent) : name(name), hasPar
         this->globalRotation = 0;
         this->globalScale = sf::Vector2f(1, 1);
 
-        std::cout << "Created: " << this->name << '-' << this
-                  << " with no parent (NULL pointer)" << std::endl;
+        LOG("Created: " << this->name << '-' << this
+                        << " with no parent (NULL pointer)");
     }
     else
     {
@@ -284,8 +281,8 @@ Object::Object(std::string name, int layer, Object *parent) : name(name), hasPar
         this->globalRotation = this->parent->globalRotation;
         this->globalScale = this->parent->globalScale;
 
-        std::cout << "Created: " << this->name << '-' << this
-                  << " with parent: " << parent->name << '-' << parent << std::endl;
+        LOG("Created: " << this->name << '-' << this
+                        << " with parent: " << parent->name << '-' << parent);
     }
 }
 
@@ -310,7 +307,7 @@ Object::~Object()
     this->toBeDeleted = false;
     this->toChangeParent = false;
     this->toBeMoved = false;
-    std::cout << "Deleted: " << this->name << '-' << this << std::endl;
+    LOG("Deleted: " << this->name << '-' << this);
 }
 
 std::string Object::GetName()
@@ -420,14 +417,14 @@ void Object::Update()
         // Verify the child to exist
         if (!c)
         {
-            std::cout << "Failed to update child (NULL pointer)" << std::endl;
+            LOG_ERR("Failed to update child (NULL pointer)");
             continue;
         }
 
         if (!c->IsRegistered())
         {
-            std::cout << "Failed to update: " << c->name << '-' << c
-                      << " (Not registered to the scene)" << std::endl;
+            LOG_ERR("Failed to update: " << c->name << '-' << c
+                                         << " (Not registered to the scene)");
             continue;
         }
 
@@ -444,14 +441,14 @@ void Object::Draw(sf::RenderWindow &window)
         // Verify the child to exist
         if (!c)
         {
-            std::cout << "Failed to draw child (NULL pointer)" << std::endl;
+            LOG_ERR("Failed to draw child (NULL pointer)");
             continue;
         }
 
         if (!c->IsRegistered())
         {
-            std::cout << "Failed to draw: " << c->name << '-' << c
-                      << " (Not registered to the scene)" << std::endl;
+            LOG_ERR("Failed to draw: " << c->name << '-' << c
+                                       << " (Not registered to the scene)");
             continue;
         }
 
@@ -500,8 +497,8 @@ Object *Object::GetParent()
     // Verify the object to have a parent
     if (!this->hasParent)
     {
-        std::cout << "Failed to get parent of: " << this->name << '-' << this
-                  << " (Has no parent)" << std::endl;
+        LOG_ERR("Failed to get parent of: " << this->name << '-' << this
+                                            << " (Has no parent)");
         return nullptr;
     }
 
@@ -523,15 +520,15 @@ void Object::AddChild(Object *c)
     // Verify the child to exist
     if (!c)
     {
-        std::cout << "Failed to add child (NULL pointer)" << std::endl;
+        LOG_ERR("Failed to add child (NULL pointer)");
         return;
     }
 
     this->children.push_back(c);
     c->objectIndex = this->children.size() - 1;
-    std::cout << "Added: " << c->name << '-' << c
-              << " to: " << this->name << '-' << this
-              << " children list" << std::endl;
+    LOG("Added: " << c->name << '-' << c
+                  << " to: " << this->name << '-' << this
+                  << " children list");
 }
 
 void Object::RemoveChild(Object *c)
@@ -539,7 +536,7 @@ void Object::RemoveChild(Object *c)
     // Verify the child to exist
     if (!c || !c->IsRegistered())
     {
-        std::cout << "Failed to remove child (NULL pointer or not registered)" << std::endl;
+        LOG_ERR("Failed to remove child (NULL pointer or not registered)");
         return;
     }
 
@@ -547,9 +544,9 @@ void Object::RemoveChild(Object *c)
     size_t index = c->objectIndex;
     if (!(index < this->children.size() && this->children[index] == c))
     {
-        std::cout << "Failed to remove: " << c->name << '-' << c
-                  << " from: " << this->name << '-' << this
-                  << " children list (Not found in list)" << std::endl;
+        LOG_ERR("Failed to remove: " << c->name << '-' << c
+                                     << " from: " << this->name << '-' << this
+                                     << " children list (Not found in list)");
         return;
     }
 
@@ -557,9 +554,9 @@ void Object::RemoveChild(Object *c)
     children.at(index) = this->children.back();
     children.at(index)->objectIndex = index;
     this->children.pop_back();
-    std::cout << "Removed: " << c->name << '-' << c
-              << " from: " << this->name << '-' << this
-              << " children list" << std::endl;
+    LOG("Removed: " << c->name << '-' << c
+                    << " from: " << this->name << '-' << this
+                    << " children list");
 }
 
 const std::vector<sf::Event::EventType> Object::GetEventsToSubscribe()

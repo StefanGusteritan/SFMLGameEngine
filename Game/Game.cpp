@@ -3,13 +3,13 @@
 Game::Game(sf::VideoMode windowSize, const std::string windowTitle, sf::Uint32 windowStyle)
 {
     this->mainWindow.create(windowSize, windowTitle, windowStyle);
-    std::cout << "Created: Game" << std::endl;
-    std::cout << "Created: Window with title: " << windowTitle << std::endl;
+    LOG("Created: Game");
+    LOG("Created: Window with title: " << windowTitle);
 }
 
 Game::~Game()
 {
-    std::cout << "Deleted: Game" << std::endl;
+    LOG("Deleted: Game");
 }
 
 const sf::RenderWindow &Game::GetWindow()
