@@ -5,9 +5,9 @@ class Troop : public RectangleObject
 public:
     Troop() : RectangleObject("Troop")
     {
-        this->rectangle.setSize(sf::Vector2f(size, size));
-        this->rectangle.setFillColor(sf::Color::White);
-        this->rectangle.setOrigin(size / 2, size / 2);
+        this->SetSize({size, size});
+        this->SetFillColor(sf::Color::White);
+        this->SetOrigin({size / 2, size / 2});
     }
 
     const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
@@ -26,14 +26,14 @@ private:
     {
         LOG("Troop: " << this << " selected");
         selected = true;
-        this->rectangle.setFillColor(sf::Color::Blue);
+        this->SetFillColor(sf::Color::Blue);
     }
 
     void Deselect()
     {
         LOG("Troop: " << this << " deselected");
         selected = false;
-        this->rectangle.setFillColor(sf::Color::White);
+        this->SetFillColor(sf::Color::White);
     }
 
     void OnEvent(sf::Event event) override

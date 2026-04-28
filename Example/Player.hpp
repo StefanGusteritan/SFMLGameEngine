@@ -5,11 +5,11 @@ class Player : public RectangleObject
 public:
     Player(int layer) : RectangleObject("Player", layer)
     {
-        this->rectangle.setSize(sf::Vector2f(size, size));
+        this->SetSize({size, size});
         if (layer == 1)
-            this->rectangle.setFillColor(sf::Color::Green);
+            this->SetFillColor(sf::Color::Green);
         else
-            this->rectangle.setFillColor(sf::Color::Blue);
+            this->SetFillColor(sf::Color::Blue);
     }
 
     const std::vector<sf::Event::EventType> GetEventsToSubscribe() override

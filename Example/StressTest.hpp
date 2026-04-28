@@ -3,6 +3,9 @@
 #include <iomanip>
 #include <sstream>
 
+// Forward declaration
+class StressTestController;
+
 // A performance counter to see the impact of our optimizations
 class FPSCounter : public TextObject
 {
@@ -18,20 +21,20 @@ public:
         // Try to load a system font (standard on most Linux/WSL distros)
         if (font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"))
         {
-            this->text.setFont(font);
-            this->text.setCharacterSize(24);
-            this->text.setFillColor(sf::Color::Yellow);
-            this->text.setOutlineColor(sf::Color::Black);
-            this->text.setOutlineThickness(2);
+            this->SetFont(font);
+            this->SetCharacterSize(24);
+            this->SetFillColor(sf::Color::Yellow);
+            this->SetOutlineColor(sf::Color::Black);
+            this->SetOutlineThickness(2);
             this->SetPosition({20, 20});
         }
         else if (font.loadFromFile("D:/Code/Compiler-Libraries/UbuntuMono[wght].ttf"))
         {
-            this->text.setFont(font);
-            this->text.setCharacterSize(24);
-            this->text.setFillColor(sf::Color::Yellow);
-            this->text.setOutlineColor(sf::Color::Black);
-            this->text.setOutlineThickness(2);
+            this->SetFont(font);
+            this->SetCharacterSize(24);
+            this->SetFillColor(sf::Color::Yellow);
+            this->SetOutlineColor(sf::Color::Black);
+            this->SetOutlineThickness(2);
             this->SetPosition({20, 20});
         }
     }
@@ -45,7 +48,7 @@ public:
         {
             std::stringstream ss;
             ss << "FPS: " << frames << " | DT: " << std::fixed << std::setprecision(4) << game.time.GetDT();
-            this->text.setString(ss.str());
+            this->SetString(ss.str());
             timer = 0;
             frames = 0;
         }
@@ -62,9 +65,9 @@ public:
         : RectangleObject("Gun", parent)
     {
         sf::Vector2f size(25.f, 8.f);
-        this->rectangle.setSize(size);
-        this->rectangle.setOrigin(0.f, size.y / 2.f);
-        this->rectangle.setFillColor(color);
+        this->SetSize(size);
+        this->SetOrigin({0.f, size.y / 2.f});
+        this->SetFillColor(color);
         this->SetPosition(offset);
     }
 
@@ -80,22 +83,16 @@ public:
 class ComplexShip : public RectangleObject
 {
 private:
+    size_t index;
     sf::Vector2f velocity;
     float rotationSpeed;
+    StressTestController *controller;
+
+    friend class StressTestController;
 
 public:
-    ComplexShip(sf::Vector2f pos, int startLayer, std::string name = "Ship")
-        : RectangleObject(name, startLayer)
-    {
-        sf::Vector2f size(40.f, 30.f);
-        this->rectangle.setSize(size);
-        this->rectangle.setOrigin(size.x / 2.f, size.y / 2.f);
-        this->rectangle.setFillColor(sf::Color(rand() % 155 + 100, rand() % 155 + 100, rand() % 155 + 100));
-        this->SetPosition(pos);
-
-        this->velocity = {(float)(rand() % 200 - 100), (float)(rand() % 200 - 100)};
-        this->rotationSpeed = (float)(rand() % 100 - 50);
-    }
+    ComplexShip(StressTestController *controller);
+    ~ComplexShip();
 
     // New pattern: Children are registered automatically after the parent
     const std::vector<Object *> GetChildrenToAdd() override
@@ -103,6 +100,11 @@ public:
         return std::vector<Object *>{
             new ShipGun(this, sf::Color::Red, {15.f, -10.f}),
             new ShipGun(this, sf::Color::Red, {15.f, 10.f})};
+    }
+
+    const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
+    {
+        return {sf::Event::KeyPressed};
     }
 
     void Update() override
@@ -125,9 +127,10 @@ class StressTestController : public Object
 {
 private:
     bool chaosMode = false;
-    std::vector<ComplexShip *> ships;
 
 public:
+    std::vector<ComplexShip *> ships;
+
     StressTestController() : Object("StressController") {}
 
     const std::vector<sf::Event::EventType> GetEventsToSubscribe() override
@@ -140,6 +143,16 @@ public:
         return {new FPSCounter()};
     }
 
+    void RemoveShipFromList(ComplexShip *s)
+    {
+        if (s->index < ships.size() && ships[s->index] == s)
+        {
+            ships[s->index] = ships.back();
+            ships[s->index]->index = s->index;
+            ships.pop_back();
+        }
+    }
+
     void OnEvent(sf::Event event) override
     {
         if (event.type == sf::Event::KeyPressed)
@@ -150,10 +163,22 @@ public:
                 LOG("[STRESS] Spawning 100 Ships (300 entities)...");
                 for (int i = 0; i < 100; ++i)
                 {
-                    ComplexShip *s = new ComplexShip({(float)(rand() % 1920), (float)(rand() % 1080)}, rand() % 5);
+                    ComplexShip *s = new ComplexShip(this);
                     game.sceneManager.AddObject(s);
-                    ships.push_back(s);
+                    this->ships.push_back(s);
+                    s->index = this->ships.size() - 1;
                 }
+            }
+
+            // [A] - ADD OBJECT: Spawn 1 Ship (3 objects total)
+            if (event.key.code == sf::Keyboard::A)
+            {
+                LOG("[STRESS] Spawning 1 Ship (3 entities)...");
+
+                ComplexShip *s = new ComplexShip(this);
+                game.sceneManager.AddObject(s);
+                this->ships.push_back(s);
+                s->index = this->ships.size() - 1;
             }
 
             // [L] - LAYER CHAOS: Move all ships to random layers simultaneously
@@ -167,16 +192,36 @@ public:
                 }
             }
 
+            // [P] - Parent CHAOS: Change all ships parent to a random parent simultaneously
+            if (event.key.code == sf::Keyboard::P)
+            {
+                LOG("[STRESS] Changing all objects parent...");
+                for (auto s : ships)
+                {
+                    if (s->IsRegistered())
+                    {
+                        int chance = rand() % 100;
+                        if (chance < 70)
+                            game.sceneManager.SetObjectParent(ships[rand() % ships.size()], s);
+                        else
+                            game.sceneManager.SetObjectParent(nullptr, s);
+                    }
+                }
+            }
+
             // [C] - CLEAR: Remove everything
             if (event.key.code == sf::Keyboard::C)
             {
                 LOG("[STRESS] Removing all registered ships...");
-                for (auto s : ships)
+                // Copy the list to avoid iterator invalidation during removal
+                std::vector<ComplexShip *> toDelete = ships;
+                for (auto s : toDelete)
                 {
                     if (s->IsRegistered())
+                    {
                         game.sceneManager.RemoveObject(s);
+                    }
                 }
-                ships.clear();
             }
 
             // [X] - TOGGLE CHAOS MODE (Random per-frame stress)
@@ -190,22 +235,30 @@ public:
 
     void Update() override
     {
-        if (chaosMode && ships.size() >= 5)
+
+        if (chaosMode && ships.size() > 5)
         {
             // Randomly move or delete ships every frame to test list stability
-            for (int i = 0; i < 5; ++i)
+            for (int i = 0; i < 5; i++)
             {
-
                 int idx = rand() % ships.size();
                 if (ships[idx]->IsRegistered())
                 {
-                    if (rand() % 100 < 5)
-                    { // 5% chance to delete
-                        game.sceneManager.RemoveObject(ships[idx]);
-                        ships[idx] = ships.back();
-                        ships.pop_back();
+                    int action = rand() % 100;
+                    if (action < 10)
+                    { // 10% chance to delete
+                        ComplexShip *s = ships[idx];
+                        game.sceneManager.RemoveObject(s);
+                        // Note: Removal from this->ships is now handled in ~ComplexShip()
                     }
-                    else // 95% chance to switch layer
+                    else if (action < 40)
+                    { // 30% chance to change parent
+                        if (action < 35)
+                            game.sceneManager.SetObjectParent(ships[rand() % ships.size()], ships[idx]);
+                        else
+                            game.sceneManager.SetObjectParent(nullptr, ships[idx]);
+                    }
+                    else // 60% chance to switch layer
                         game.sceneManager.SetObjectLayer(rand() % 10, ships[idx]);
                 }
             }
@@ -213,3 +266,26 @@ public:
         this->Object::Update();
     }
 };
+
+// Implement ComplexShip methods after StressTestController is defined
+inline ComplexShip::ComplexShip(StressTestController *controller)
+    : RectangleObject("Ship", rand() % 5), controller(controller)
+{
+    sf::Vector2f size(40.f, 30.f);
+    this->SetSize(size);
+    this->SetOrigin({size.x / 2.f, size.y / 2.f});
+    this->SetFillColor(sf::Color(rand() % 155 + 100, rand() % 155 + 100, rand() % 155 + 100));
+    this->SetPosition({(float)(rand() % 1920), (float)(rand() % 1080)});
+
+    this->velocity = {(float)(rand() % 200 - 100), (float)(rand() % 200 - 100)};
+    this->rotationSpeed = (float)(rand() % 100 - 50);
+    this->index = 0;
+}
+
+inline ComplexShip::~ComplexShip()
+{
+    if (controller)
+    {
+        controller->RemoveShipFromList(this);
+    }
+}

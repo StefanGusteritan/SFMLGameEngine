@@ -5,10 +5,10 @@ class TestChild : public RectangleObject
 public:
     TestChild(Object *p) : RectangleObject("Child", 1, p)
     {
-        this->rectangle.setSize(sf::Vector2f(size, size));
-        this->rectangle.setFillColor(sf::Color::Green);
-        this->rectangle.setOrigin(size / 2, size / 2);
-        this->SetPosition(sf::Vector2f(200, 100));
+        this->SetSize({size, size});
+        this->SetFillColor(sf::Color::Green);
+        this->SetOrigin({size / 2, size / 2});
+        this->SetPosition({200, 100});
         this->SetRotation(45);
     }
 
@@ -38,9 +38,9 @@ class TestParent : public RectangleObject
 public:
     TestParent() : RectangleObject(2)
     {
-        this->rectangle.setSize(sf::Vector2f(size, size));
-        this->rectangle.setFillColor(sf::Color::Blue);
-        this->rectangle.setOrigin(size / 2, size / 2);
+        this->SetSize({size, size});
+        this->SetFillColor(sf::Color::Blue);
+        this->SetOrigin({size / 2, size / 2});
         this->SetPosition(sf::Vector2f(960, 540));
     }
 

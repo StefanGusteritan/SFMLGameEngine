@@ -14,6 +14,8 @@ The SFML Game Engine is built on the principle of **stability through separation
 - **Layer-Based Spatiality:** A simple integer-based layering system handles draw order automatically.
 - **Opt-in Events:** Objects only pay for the events they choose to listen to.
 - **Scene-Driven Architecture:** Entire game states (Main Menu, Level 1, etc.) are encapsulated into self-contained scenes.
+- **Performance-First Logging:** Centralized logging with zero-cost production stripping and runtime toggles.
+- **Hierarchical Collisions:** Strict collider system using AABB logic that respects the parent-child transform tree.
 
 ---
 
@@ -60,6 +62,24 @@ Objects override `GetEventsToSubscribe()` to return a list of `sf::Event::EventT
 - **Efficiency**: The `Scene` only iterates over objects that care about a specific event.
 - **Hierarchical Respect**: If a parent is `inactive`, its children will **not** receive events, even if the children themselves are marked as active.
 
+### 3.3 The Logging System
+
+The engine features a robust logging utility managed via `Logger.h`.
+
+- **Master Switch**: `#define ENGINE_LOGGING_ENABLED` can be set to `0` in `Logger.h` to completely strip all logging code from the binary for maximum production performance.
+- **Runtime Toggle**: When enabled, `Logger::ToggleDebug(bool)` allows silencing/enabling logs at runtime without recompilation.
+- **Macros**: Use `LOG("Message" << variable)` and `LOG_ERR("Error")`. These automatically handle `std::endl`.
+
+### 3.4 The Collision System
+
+A "Strict Collider" system designed for high performance and hierarchical flexibility.
+
+- **The `Collider` Entity**: A specialized `RectangleObject` that serves as a physical hitbox.
+- **Hierarchical Bounds**: Colliders can be attached to any object (e.g., a sprite) as children. They inherit the parent's position, rotation, and scale.
+- **Efficient Queries**: The `Scene` maintains a flat list of active colliders. Deletions use the "Swap and Pop" technique for $O(1)$ performance.
+- **Memory Safety**: `GetCollisions` uses output parameters (`std::vector<Object*>&`) to avoid heap allocations during the game loop.
+- **Debug Drawing**: Globally toggle hitbox visibility with `Collider::ToggleDebug(true)`.
+
 ---
 
 ## 4. Class Reference
@@ -75,6 +95,7 @@ The root of all entities.
 - **`Move(direction, speed, dt)`**: Moves the object. Now requires `dt` (Delta Time) to ensure framerate independence.
 - **`Rotate(angle, speed, dt)`**: Rotates the object. Now requires `dt`.
 - **`GetChildrenToAdd()`**: Override this to return a list of children that should be automatically registered when the parent is added to a scene.
+- **`IsCollider()`**: Returns true for dedicated collider objects.
 - **`Update()`**: **CRITICAL**: Always call `BaseClass::Update()` (e.g., `RectangleObject::Update()`) at the end of your override to ensure children update.
 
 ### 4.2 `SceneManager` Class
@@ -83,19 +104,19 @@ The root of all entities.
 - **`RemoveObject(Object*)`**: Marks for safe deletion. **Do not use `delete`**.
 - **`SetObjectParent(parent, child)`**: Handles reparenting. Passing `nullptr` as parent makes the object a root object.
 - **`SetObjectLayer(int, Object*)`**: Changes the render depth. Children follow their parent's layer.
+- **`GetCollisions(target, outVector)`**: Efficiently finds all objects intersecting with the target collider.
 
-### 4.3 `TimeManager` Class
+### 4.3 `RectangleObject` Class
+- **`SetSize(sf::Vector2f)`**: Dynamically resize the rectangle.
+- **`GetSize()`**: Returns the current dimensions.
+
+### 4.4 `Collider` Class (Inherits from `RectangleObject`)
+- **`SetSize(sf::Vector2f)` / `SetOrigin(sf::Vector2f)`**: Publicly exposed for hitbox configuration.
+- **`IsVisible()`**: Overridden to respect the global `Collider::showColliders` debug toggle.
+
+### 4.5 `TimeManager` Class
 
 - **`GetDT()`**: Returns Delta Time (seconds since last frame). Use this to ensure movement is consistent across different CPUs (e.g., `pos += velocity * GetDT()`).
-
-### 4.4 `Object` Class (The Foundation)
-
-The base class for all game entities.
-
-- **`position`, `rotation`, `scale`**: Local transform values relative to the parent.
-- **`globalPosition`, `globalRotation`, `globalScale`**: Calculated world coordinates.
-- **`active` / `visible`**: Toggles whether an object updates or draws.
-- **`Update()`**: **CRITICAL**: Always call `BaseClass::Update()` at the end of your override to ensure transform propagation.
 
 ---
 

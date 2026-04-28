@@ -22,6 +22,10 @@ private:
 
     // The objects that are subscribed to each event type
     std::unordered_map<sf::Event::EventType, std::vector<Object *>> eventSubscribers;
+
+    // The collider objects in the scene
+    std::vector<Object *> colliders;
+
     // Subscribe an object to the events that wants to react to
     void SubscribeToEvents(Object *o);
     // Unsubscribe an object from the events that it was subscribed to
@@ -52,6 +56,9 @@ private:
 
     // Draw every visble Object
     void Draw(sf::RenderWindow &window);
+
+    // Get a list of the colliders that the target intersects with
+    void GetCollisions(Object *target, std::vector<Object *> &outCollisions);
 
     friend class SceneManager;
 
@@ -146,6 +153,9 @@ public:
 
     // Sets the layer of the specified object
     void SetObjectLayer(int layer, Object *o);
+
+    // Get a list of the colliders that the target intersects with
+    void GetCollisions(Object *target, std::vector<Object *> &outCollisions);
 
     // Get a pointer to the camera of the active scene
     sf::View &GetCamera();

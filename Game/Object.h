@@ -31,6 +31,8 @@ private:
     size_t objectIndex;
     // The index of the object in the event's subscribers list of the events that is subscribed to
     std::unordered_map<sf::Event::EventType, size_t> subscriberIndices;
+    // The index of the object in the colliders list (if it is a collider)
+    size_t colliderIndex;
 
     // Active state of the object (if it's false the update function will not be called)
     bool active;
@@ -126,7 +128,10 @@ public:
     // True if the object is active
     bool IsActive();
     // True if the drawable object is visible (always true for not drawable object -to call the function for children-)
-    bool IsVisible();
+    virtual bool IsVisible();
+
+    // True if the object is a collider type
+    virtual bool IsCollider();
 
     // Get the global position of the object
     sf::Vector2f GetGlobalPosition();
@@ -140,6 +145,8 @@ public:
     float GetRotation();
     // Get the local scale of the object
     sf::Vector2f GetScale();
+    // Get the bounding rectangle of the object.
+    virtual sf::FloatRect GetBounds() const;
 
     // True if the object is a child of another object
     bool IsChild();
@@ -166,14 +173,26 @@ public:
 class SpriteObject : public Object
 {
 private:
+    sf::Sprite sprite;
     // Draw the object
     void Draw(sf::RenderWindow &window) override;
 
 protected:
-    sf::Sprite sprite;
-
     // Update object each frame add changes to the sprite
     virtual void Update() override;
+
+    // Change the source texture of the sprite.
+    void SetTexture(const sf::Texture &texture, bool resetRect = false);
+    // Set the sub-rectangle of the texture that the sprite will display.
+    void SetTextureRect(const sf::IntRect &rectangle);
+
+    // Set the global color of the sprite.
+    void SetColor(const sf::Color &color);
+
+    // Set the local origin of the object
+    void SetOrigin(const sf::Vector2f &origin);
+    // Get the local origin of the object
+    const sf::Vector2f &GetOrigin() const;
 
 public:
     SpriteObject();
@@ -184,20 +203,60 @@ public:
     SpriteObject(std::string name, Object *parent);
     SpriteObject(int layer, Object *parent);
     SpriteObject(std::string name, int layer, Object *parent);
+
+    // Get the source texture of the sprite.
+    const sf::Texture *GetTexture() const;
+    // Get the sub-rectangle of the texture displayed by the sprite.
+    const sf::IntRect &GetTextureRect() const;
+
+    // Get the global color of the sprite.
+    const sf::Color &GetColor() const;
+
+    // Get the bounding rectangle of the object.
+    sf::FloatRect GetBounds() const;
 };
 
 // Object that has a text
 class TextObject : public Object
 {
 private:
+    sf::Text text;
+
     // Draw the object
     void Draw(sf::RenderWindow &window) override;
 
 protected:
-    sf::Text text;
-
     // Update object each frame add changes to the convex text
     virtual void Update() override;
+
+    // Set the text's string.
+    void SetString(const sf::String &string);
+
+    // Set the text's font.
+    void SetFont(const sf::Font &font);
+    // Set the character size.
+    void SetCharacterSize(unsigned int size);
+    // Set the line spacing factor.
+    void SetLineSpacing(float spacingFactor);
+    // Set the letter spacing factor.
+    void SetLetterSpacing(float spacingFactor);
+
+    // Set the text's style.
+    void SetStyle(sf::Uint32 style);
+    // Set the fill color of the text.
+    void SetFillColor(const sf::Color &color);
+    // Set the outline color of the text.
+    void SetOutlineColor(const sf::Color &color);
+    // Set the thickness of the text's outline.
+    void SetOutlineThickness(float thickness);
+
+    // Return the position of the index-th character.
+    sf::Vector2f FindCharacterPos(std::size_t index) const;
+
+    // Set the local origin of the object
+    void SetOrigin(const sf::Vector2f &origin);
+    // Get the local origin of the object
+    const sf::Vector2f &GetOrigin() const;
 
 public:
     TextObject();
@@ -208,20 +267,68 @@ public:
     TextObject(std::string name, Object *parent);
     TextObject(int layer, Object *parent);
     TextObject(std::string name, int layer, Object *parent);
+
+    // Get the text's string.
+    const sf::String &GetString() const;
+
+    // Get the text's font.
+    const sf::Font *GetFont() const;
+    // Get the character size.
+    unsigned int GetCharacterSize() const;
+    // Get the size of the letter spacing factor.
+    float GetLetterSpacing() const;
+    // Get the size of the line spacing factor.
+    float GetLineSpacing() const;
+
+    // Get the text's style.
+    sf::Uint32 GetStyle() const;
+    // Get the fill color of the text.
+    const sf::Color &GetFillColor() const;
+    // Get the outline color of the text.
+    const sf::Color &getOutlineColor() const;
+    // Get the outline thickness of the text.
+    float GetOutlineThickness() const;
+
+    // Get the bounding rectangle of the object.
+    sf::FloatRect GetBounds() const;
 };
 
 // Object that has a circle shape
 class CircleObject : public Object
 {
 private:
+    sf::CircleShape circle;
+
     // Draw the object
     void Draw(sf::RenderWindow &window) override;
 
 protected:
-    sf::CircleShape circle;
-
     // Update object each frame add changes to the circle
     virtual void Update() override;
+
+    // Set the radius of the circle.
+    void SetRadius(float radius);
+    // Set the number of points of the circle.
+    void SetPointCount(std::size_t count);
+    // Get a point of the circle.
+    virtual sf::Vector2f GetPoint(std::size_t index) const;
+
+    // Change the source texture of the shape.
+    void SetTexture(const sf::Texture *texture, bool resetRect = false);
+    // Set the sub-rectangle of the texture that the shape will display.
+    void SetTextureRect(const sf::IntRect &rectangle);
+
+    // Set the fill color of the shape.
+    void SetFillColor(const sf::Color &color);
+    // Set the outline color of the shape.
+    void SetOutlineColor(const sf::Color &color);
+    // Set the thickness of the shape's outline.
+    void setOutlineThickness(float thickness);
+
+    // Set the local origin of the object
+    void SetOrigin(const sf::Vector2f &origin);
+    // Get the local origin of the object
+    const sf::Vector2f &GetOrigin() const;
 
 public:
     CircleObject();
@@ -232,20 +339,62 @@ public:
     CircleObject(std::string name, Object *parent);
     CircleObject(int layer, Object *parent);
     CircleObject(std::string name, int layer, Object *parent);
+
+    // Get the radius of the circle.
+    float GetRadius() const;
+    // Get the number of points of the circle.
+    virtual std::size_t GetPointCount() const;
+
+    // Get the source texture of the shape.
+    const sf::Texture *GetTexture() const;
+    // Get the sub-rectangle of the texture displayed by the shape.
+    const sf::IntRect &GetTextureRect() const;
+
+    // Get the fill color of the shape.
+    const sf::Color &GetFillColor() const;
+    // Get the outline color of the shape.
+    const sf::Color &GetOutlineColor() const;
+    // Get the outline thickness of the shape.
+    float GetOutlineThickness() const;
+
+    // Get the bounding rectangle of the object.
+    sf::FloatRect GetBounds() const;
 };
 
 // Object that has a rectangle shape
 class RectangleObject : public Object
 {
 private:
+    sf::RectangleShape rectangle;
+
     // Draw the object
     void Draw(sf::RenderWindow &window) override;
 
 protected:
-    sf::RectangleShape rectangle;
-
     // Update object each frame add changes to the rectangle
     virtual void Update() override;
+
+    // Set the size of the rectangle.
+    void SetSize(const sf::Vector2f &size);
+    // Get a point of the shape.
+    virtual sf::Vector2f GetPoint(std::size_t index) const;
+
+    // Change the source texture of the shape.
+    void SetTexture(const sf::Texture *texture, bool resetRect = false);
+    // Set the sub-rectangle of the texture that the shape will display.
+    void SetTextureRect(const sf::IntRect &rectangle);
+
+    // Set the fill color of the shape.
+    void SetFillColor(const sf::Color &color);
+    // Set the outline color of the shape.
+    void SetOutlineColor(const sf::Color &color);
+    // Set the thickness of the shape's outline.
+    void setOutlineThickness(float thickness);
+
+    // Set the local origin of the object
+    void SetOrigin(const sf::Vector2f &origin);
+    // Get the local origin of the object
+    const sf::Vector2f &GetOrigin() const;
 
 public:
     RectangleObject();
@@ -256,20 +405,64 @@ public:
     RectangleObject(std::string name, Object *parent);
     RectangleObject(int layer, Object *parent);
     RectangleObject(std::string name, int layer, Object *parent);
+
+    // Get the size of the rectangle.
+    const sf::Vector2f &GetSize() const;
+    // Get the number of points of the shape.
+    virtual std::size_t GetPointCount() const;
+
+    // Get the source texture of the shape.
+    const sf::Texture *GetTexture() const;
+    // Get the sub-rectangle of the texture displayed by the shape.
+    const sf::IntRect &GetTextureRect() const;
+
+    // Get the fill color of the shape.
+    const sf::Color &GetFillColor() const;
+    // Get the outline color of the shape.
+    const sf::Color &GetOutlineColor() const;
+    // Get the outline thickness of the shape.
+    float GetOutlineThickness() const;
+
+    // Get the bounding rectangle of the object.
+    sf::FloatRect GetBounds() const;
 };
 
 // Object that has a convex shape
 class ConvexObject : public Object
 {
 private:
+    sf::ConvexShape convexShape;
+
     // Draw the object
     void Draw(sf::RenderWindow &window) override;
 
 protected:
-    sf::ConvexShape convexShape;
-
     // Update object each frame add changes to the convex shape
     virtual void Update() override;
+
+    // Set the number of points of the shape.
+    void SetPointCount(std::size_t count);
+    // Set the position of a point
+    void SetPoint(std::size_t index, const sf::Vector2f &point);
+    // Get a point of the shape.
+    virtual sf::Vector2f GetPoint(std::size_t index) const;
+
+    // Change the source texture of the shape.
+    void SetTexture(const sf::Texture *texture, bool resetRect = false);
+    // Set the sub-rectangle of the texture that the shape will display.
+    void SetTextureRect(const sf::IntRect &rectangle);
+
+    // Set the fill color of the shape.
+    void SetFillColor(const sf::Color &color);
+    // Set the outline color of the shape.
+    void SetOutlineColor(const sf::Color &color);
+    // Set the thickness of the shape's outline.
+    void setOutlineThickness(float thickness);
+
+    // Set the local origin of the object
+    void SetOrigin(const sf::Vector2f &origin);
+    // Get the local origin of the object
+    const sf::Vector2f &GetOrigin() const;
 
 public:
     ConvexObject();
@@ -280,4 +473,51 @@ public:
     ConvexObject(std::string name, Object *parent);
     ConvexObject(int layer, Object *parent);
     ConvexObject(std::string name, int layer, Object *parent);
+
+    // Get the number of points of the shape.
+    virtual std::size_t GetPointCount() const;
+
+    // Get the source texture of the shape.
+    const sf::Texture *GetTexture() const;
+    // Get the sub-rectangle of the texture displayed by the shape.
+    const sf::IntRect &GetTextureRect() const;
+
+    // Get the fill color of the shape.
+    const sf::Color &GetFillColor() const;
+    // Get the outline color of the shape.
+    const sf::Color &GetOutlineColor() const;
+    // Get the outline thickness of the shape.
+    float GetOutlineThickness() const;
+
+    // Get the bounding rectangle of the object.
+    sf::FloatRect GetBounds() const;
+};
+
+// Rectangle that has the ability to collide with other objects of this class
+class Collider : public RectangleObject
+{
+private:
+    static bool showColliders;
+
+public:
+    static void ToggleDebug(bool state);
+    static bool IsDebugEnabled();
+
+    Collider();
+    Collider(std::string name);
+    Collider(int layer);
+    Collider(Object *parent);
+    Collider(std::string name, int layer);
+    Collider(std::string name, Object *parent);
+    Collider(int layer, Object *parent);
+    Collider(std::string name, int layer, Object *parent);
+
+    bool IsVisible() override;
+
+    bool IsCollider() override;
+
+    using RectangleObject::GetOrigin;
+    using RectangleObject::GetPoint;
+    using RectangleObject::SetOrigin;
+    using RectangleObject::SetSize;
 };

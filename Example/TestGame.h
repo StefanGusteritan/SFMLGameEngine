@@ -7,3 +7,4 @@ extern SceneBuilder playerScene;
 extern SceneBuilder troopScene;
 extern SceneBuilder parentChildScene;
 extern SceneBuilder stressTestScene;
+extern SceneBuilder collisionTestScene;

@@ -49,6 +49,7 @@ Scene::~Scene()
     this->objectsToMove.clear();
     this->camera = sf::View();
     this->eventSubscribers.clear();
+    this->colliders.clear();
 
     LOG("Deleted: " << this->name << '-' << this);
 }
@@ -95,7 +96,16 @@ void Scene::UnsubscribeFromEvents(Object *o)
     for (sf::Event::EventType event : events)
     {
         // Verify object is in subscribers list
-        size_t index = o->subscriberIndices[event];
+        auto it = o->subscriberIndices.find(event);
+        if (it == o->subscriberIndices.end())
+        {
+            LOG_ERR("Failed to unsubscribe: " << o->name << '-' << o
+                                              << " from event: " << event
+                                              << " (Not found in subscribers list)");
+            continue;
+        }
+
+        size_t index = it->second;
         auto &subs = this->eventSubscribers[event];
         if (!(index < subs.size() && subs[index] == o))
         {
@@ -106,8 +116,11 @@ void Scene::UnsubscribeFromEvents(Object *o)
         }
 
         // Remove the object from the list of subscribers for the event
-        subs.at(index) = subs.back();
-        subs.at(index)->subscriberIndices[event] = index;
+        if (subs.at(index) != subs.back())
+        {
+            subs.at(index) = subs.back();
+            subs.at(index)->subscriberIndices[event] = index;
+        }
         subs.pop_back();
         o->subscriberIndices.erase(event);
         LOG("Unsubscribed: " << o->name << '-' << o
@@ -167,6 +180,16 @@ void Scene::AddObject(Object *o)
         LOG("Added: " << o->name << '-' << o
                       << " to: " << this->name << '-' << this
                       << " objects list-layer: " << o->layer);
+    }
+
+    // If the object is a collider add it to the list of colliders
+    if (o->IsCollider())
+    {
+        this->colliders.push_back(o);
+        o->colliderIndex = this->colliders.size() - 1;
+        LOG("Added: " << o->name << '-' << o
+                      << " to: " << this->name << '-' << this
+                      << " colliders list");
     }
 
     // Mark the object as registered
@@ -253,7 +276,26 @@ void Scene::DeleteObjects(bool removeFromScene)
             c->children.clear();
 
             if (removeFromScene)
+            {
                 this->UnsubscribeFromEvents(c);
+
+                if (c->IsCollider())
+                {
+                    size_t index = c->colliderIndex;
+                    if (!(index < this->colliders.size() && this->colliders[index] == c))
+                    {
+                        LOG_ERR("Failed to remove: " << c->name << '-' << c
+                                                     << " from: " << this->name << '-' << this
+                                                     << " colliders list (Not found in list)");
+                    }
+                    else
+                    {
+                        this->colliders.at(index) = this->colliders.back();
+                        this->colliders.at(index)->colliderIndex = index;
+                        this->colliders.pop_back();
+                    }
+                }
+            }
 
             delete c;
         }
@@ -313,6 +355,23 @@ void Scene::DeleteObjects(bool removeFromScene)
                                 << " objects list-layer: " << l);
             }
 
+            if (o->IsCollider())
+            {
+                size_t index = o->colliderIndex;
+                if (!(index < this->colliders.size() && this->colliders[index] == o))
+                {
+                    LOG_ERR("Failed to remove: " << o->name << '-' << o
+                                                 << " from: " << this->name << '-' << this
+                                                 << " colliders list (Not found in list)");
+                }
+                else
+                {
+                    this->colliders.at(index) = this->colliders.back();
+                    this->colliders.at(index)->colliderIndex = index;
+                    this->colliders.pop_back();
+                }
+            }
+
             // Unsubscribe the object from the events that it was subscribed to
             this->UnsubscribeFromEvents(o);
         }
@@ -335,7 +394,7 @@ void Scene::SetObjectParent(Object *p, Object *o)
     if (p && !p->IsRegistered())
     {
         LOG_ERR("Failed to set: " << o->name << '-' << o
-                                  << " parent (parent not registered)");
+                                  << " parent (Parent not registered)");
         return;
     }
 
@@ -343,13 +402,17 @@ void Scene::SetObjectParent(Object *p, Object *o)
     if (o->toChangeParent)
     {
         if (!p)
+        {
             LOG_ERR("Failed to set: " << o->name << '-' << o
                                       << " parent to: (No parent)"
                                       << " (Already marked to change parent)");
+        }
         else
+        {
             LOG_ERR("Failed to set: " << o->name << '-' << o
                                       << " parent to: " << p->name << '-' << p
                                       << " (Already marked to change parent)");
+        }
         return;
     }
 
@@ -357,12 +420,15 @@ void Scene::SetObjectParent(Object *p, Object *o)
     if (o->parent == p)
     {
         if (!p)
+        {
             LOG_ERR("Failed to set: " << o->name << '-' << o
                                       << " parent (Already has this parent: (No parent))");
-
+        }
         else
+        {
             LOG_ERR("Failed to set: " << o->name << '-' << o
                                       << " parent (Already has this parent: " << p->name << '-' << p << ')');
+        }
         return;
     }
 
@@ -376,18 +442,24 @@ void Scene::SetObjectParent(Object *p, Object *o)
     if (o->hasParent && o->parent->IsRegistered())
     {
         if (p)
+        {
             LOG("Marked: " << o->name << '-' << o
                            << " to change parent from: " << o->parent->name << '-' << o->parent
                            << " to: " << p->name << '-' << p);
+        }
         else
+        {
             LOG("Marked: " << o->name << '-' << o
                            << " to change parent from: " << o->parent->name << '-' << o->parent
                            << " to: (No parent)");
+        }
     }
     else
+    {
         LOG("Marked: " << o->name << '-' << o
                        << " to change parent from: (No parent)"
                        << " to: " << p->name << '-' << p);
+    }
 }
 
 void Scene::ChangeParents()
@@ -553,9 +625,11 @@ void Scene::SetObjectLayer(int layer, Object *o)
                                                << ") Moving with the parent on layer: " << p->newLayer);
         }
         else
+        {
             LOG_ERR("Failed to set layer of: " << o->name << '-' << o
                                                << " (Cannot be on a different layer than its parent: " << p->name << '-' << p
                                                << ") Remaining on layer: " << p->layer);
+        }
 
         return;
     }
@@ -645,8 +719,9 @@ void Scene::MoveObjects()
 
 void Scene::OnEvent(sf::Event event)
 {
-    for (Object *o : this->eventSubscribers[event.type])
+    for (size_t i = 0; i < this->eventSubscribers[event.type].size(); i++)
     {
+        Object *o = this->eventSubscribers.at(event.type).at(i);
         // Verify the object to exist
         if (!o || !o->IsRegistered())
         {
@@ -656,12 +731,11 @@ void Scene::OnEvent(sf::Event event)
 
         bool active = true;
         Object *p = o;
-        do
+        while (p && p->IsRegistered() && active)
         {
             active = p->active;
             p = p->parent;
-
-        } while (p && p->IsRegistered() && active);
+        }
 
         if (p && !p->IsRegistered())
         {
@@ -696,7 +770,7 @@ void Scene::Update()
                 continue;
             }
 
-            if (o->active)
+            if (o->IsActive())
                 o->Update();
         }
 }
@@ -720,9 +794,81 @@ void Scene::Draw(sf::RenderWindow &window)
                 continue;
             }
 
-            if (o->visible)
+            if (o->IsVisible())
                 o->Draw(window);
         }
+}
+
+void Scene::GetCollisions(Object *target, std::vector<Object *> &outCollisions)
+{
+    outCollisions.clear();
+
+    if (!target || !target->IsRegistered())
+    {
+        LOG_ERR("Failed to get colliders with target (NULL pointer or not register)");
+        return;
+    }
+
+    if (!target->IsCollider())
+    {
+        LOG_ERR("Failed to get colliders with: " << target->name << '-' << target
+                                                 << " (Is not a collider)");
+        return;
+    }
+
+    bool active = true;
+    Object *p = target;
+    while (p && p->IsRegistered() && active)
+    {
+        active = p->active;
+        p = p->parent;
+    }
+
+    if (p && !p->IsRegistered())
+    {
+        LOG_ERR("Failed to get colliders with: " << target->name << '-' << target
+                                                 << " (NULL pointer to parent or not registered parent)");
+        return;
+    }
+
+    if (!active)
+        return;
+
+    sf::FloatRect targetBounds = target->GetBounds();
+    for (Object *other : this->colliders)
+    {
+        if (!other || !other->IsRegistered())
+        {
+            LOG_ERR("Failed to check collision between: " << target->name << '-' << target
+                                                          << " and other (NULL pointer or not register)");
+            continue;
+        }
+
+        if (other == target)
+            continue;
+
+        active = true;
+        Object *p = other;
+        while (p && p->IsRegistered() && active)
+        {
+            active = p->active;
+            p = p->parent;
+        }
+
+        if (p && !p->IsRegistered())
+        {
+            LOG_ERR("Failed to check collision between: " << target->name << '-' << target
+                                                          << " and: " << other->name << '-' << other
+                                                          << " (NULL pointer to parent or not registered parent)");
+            continue;
+        }
+
+        if (!active)
+            continue;
+
+        if (targetBounds.intersects(other->GetBounds()))
+            outCollisions.push_back(other);
+    }
 }
 
 SceneManager::SceneManager()
@@ -917,6 +1063,18 @@ void SceneManager::Draw(sf::RenderWindow &window)
 
     // Draws all the visible objects in the active scene
     this->activeScene->Draw(window);
+}
+
+void SceneManager::GetCollisions(Object *target, std::vector<Object *> &outCollisions)
+{
+    // Verify the active scene to exist
+    if (!this->activeScene)
+    {
+        LOG_ERR("Failed to set objects layer in active scene (NULL pointer to scene)");
+        return;
+    }
+
+    this->activeScene->GetCollisions(target, outCollisions);
 }
 
 sf::View &SceneManager::GetCamera()

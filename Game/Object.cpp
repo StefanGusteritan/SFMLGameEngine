@@ -1,5 +1,17 @@
 #include "Object.h"
 
+bool Collider::showColliders = false;
+
+void Collider::ToggleDebug(bool state)
+{
+    Collider::showColliders = state;
+}
+
+bool Collider::IsDebugEnabled()
+{
+    return Collider::showColliders;
+}
+
 // Object
 
 Object::Object() : name("Object"), hasParent(false), parent(nullptr)
@@ -8,6 +20,9 @@ Object::Object() : name("Object"), hasParent(false), parent(nullptr)
     this->layer = 0;
     this->newLayer = 0;
     this->registered = false;
+    this->objectIndex = 0;
+    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
+    this->colliderIndex = 0;
     this->active = true;
     this->visible = true;
     this->newParent = nullptr;
@@ -34,6 +49,9 @@ Object::Object(std::string name) : name(name), hasParent(false), parent(nullptr)
     this->layer = 0;
     this->newLayer = 0;
     this->registered = false;
+    this->objectIndex = 0;
+    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
+    this->colliderIndex = 0;
     this->active = true;
     this->visible = true;
     this->newParent = nullptr;
@@ -60,6 +78,9 @@ Object::Object(int layer) : name("Object"), hasParent(false), parent(nullptr)
     this->layer = layer;
     this->newLayer = 0;
     this->registered = false;
+    this->objectIndex = 0;
+    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
+    this->colliderIndex = 0;
     this->active = true;
     this->visible = true;
     this->newParent = nullptr;
@@ -86,6 +107,9 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
     this->layer = 0;
     this->newLayer = 0;
     this->registered = false;
+    this->objectIndex = 0;
+    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
+    this->colliderIndex = 0;
     this->active = true;
     this->visible = true;
     this->newParent = nullptr;
@@ -98,7 +122,7 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
     this->rotation = 0;
     this->scale = sf::Vector2f(1, 1);
 
-    // Verify the parent to exist
+    // Verify the parent to exist and not to be a collider
     if (!parent)
     {
         // If the parent doesn't exist the object is created without a parent
@@ -131,6 +155,9 @@ Object::Object(std::string name, int layer) : name(name), hasParent(false), pare
     this->layer = layer;
     this->newLayer = 0;
     this->registered = false;
+    this->objectIndex = 0;
+    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
+    this->colliderIndex = 0;
     this->active = true;
     this->visible = true;
     this->newParent = nullptr;
@@ -157,6 +184,9 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
     this->layer = 0;
     this->newLayer = 0;
     this->registered = false;
+    this->objectIndex = 0;
+    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
+    this->colliderIndex = 0;
     this->active = true;
     this->visible = true;
     this->newParent = nullptr;
@@ -202,6 +232,9 @@ Object::Object(int layer, Object *parent) : name("Object"), hasParent(parent != 
     this->layer = layer;
     this->newLayer = 0;
     this->registered = false;
+    this->objectIndex = 0;
+    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
+    this->colliderIndex = 0;
     this->active = true;
     this->visible = true;
     this->newParent = nullptr;
@@ -247,6 +280,9 @@ Object::Object(std::string name, int layer, Object *parent) : name(name), hasPar
     this->layer = layer;
     this->newLayer = 0;
     this->registered = false;
+    this->objectIndex = 0;
+    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
+    this->colliderIndex = 0;
     this->active = true;
     this->visible = true;
     this->newParent = nullptr;
@@ -288,25 +324,7 @@ Object::Object(std::string name, int layer, Object *parent) : name(name), hasPar
 
 Object::~Object()
 {
-    this->layer = 0;
-    this->newLayer = 0;
     this->registered = false;
-    this->objectIndex = 0;
-    this->subscriberIndices.clear();
-    this->active = false;
-    this->visible = false;
-    this->parent = nullptr;
-    this->newParent = nullptr;
-    this->hasParent = false;
-    this->globalPosition = {0, 0};
-    this->globalRotation = 0;
-    this->globalScale = {0, 0};
-    this->position = {0, 0};
-    this->rotation = 0;
-    this->scale = {0, 0};
-    this->toBeDeleted = false;
-    this->toChangeParent = false;
-    this->toBeMoved = false;
     LOG("Deleted: " << this->name << '-' << this);
 }
 
@@ -366,6 +384,11 @@ void Object::SetActive(bool a)
 bool Object::IsVisible()
 {
     return this->visible;
+}
+
+bool Object::IsCollider()
+{
+    return false;
 }
 
 void Object::SetVisible(bool visibility)
@@ -428,7 +451,7 @@ void Object::Update()
             continue;
         }
 
-        if (c->active)
+        if (c->IsActive())
             c->Update();
     }
 }
@@ -452,7 +475,7 @@ void Object::Draw(sf::RenderWindow &window)
             continue;
         }
 
-        if (c->visible)
+        if (c->IsVisible())
             c->Draw(window);
     }
 }
@@ -485,6 +508,11 @@ float Object::GetRotation()
 sf::Vector2f Object::GetScale()
 {
     return this->scale;
+}
+
+sf::FloatRect Object::GetBounds() const
+{
+    return sf::FloatRect();
 }
 
 bool Object::IsChild()
@@ -626,6 +654,51 @@ void SpriteObject::Draw(sf::RenderWindow &window)
     this->Object::Draw(window);
 }
 
+void SpriteObject::SetTexture(const sf::Texture &texture, bool resetRect)
+{
+    this->sprite.setTexture(texture, resetRect);
+}
+
+void SpriteObject::SetTextureRect(const sf::IntRect &rectangle)
+{
+    this->sprite.setTextureRect(rectangle);
+}
+
+void SpriteObject::SetColor(const sf::Color &color)
+{
+    this->sprite.setColor(color);
+}
+
+void SpriteObject::SetOrigin(const sf::Vector2f &origin)
+{
+    this->sprite.setOrigin(origin);
+}
+
+const sf::Vector2f &SpriteObject::GetOrigin() const
+{
+    return this->sprite.getOrigin();
+}
+
+const sf::Texture *SpriteObject::GetTexture() const
+{
+    return this->sprite.getTexture();
+}
+
+const sf::IntRect &SpriteObject::GetTextureRect() const
+{
+    return this->sprite.getTextureRect();
+}
+
+const sf::Color &SpriteObject::GetColor() const
+{
+    return this->sprite.getColor();
+}
+
+sf::FloatRect SpriteObject::GetBounds() const
+{
+    return this->sprite.getGlobalBounds();
+}
+
 // TextObject
 
 TextObject::TextObject() : Object()
@@ -671,6 +744,116 @@ void TextObject::Draw(sf::RenderWindow &window)
 
     // Draw the children of the object
     this->Object::Draw(window);
+}
+
+void TextObject::SetString(const sf::String &string)
+{
+    this->text.setString(string);
+}
+
+void TextObject::SetFont(const sf::Font &font)
+{
+    this->text.setFont(font);
+}
+
+void TextObject::SetCharacterSize(unsigned int size)
+{
+    this->text.setCharacterSize(size);
+}
+
+void TextObject::SetLineSpacing(float spacingFactor)
+{
+    this->text.setLineSpacing(spacingFactor);
+}
+
+void TextObject::SetLetterSpacing(float spacingFactor)
+{
+    this->text.setLetterSpacing(spacingFactor);
+}
+
+void TextObject::SetStyle(sf::Uint32 style)
+{
+    this->text.setStyle(style);
+}
+
+void TextObject::SetFillColor(const sf::Color &color)
+{
+    this->text.setFillColor(color);
+}
+
+void TextObject::SetOutlineColor(const sf::Color &color)
+{
+    this->text.setOutlineColor(color);
+}
+
+void TextObject::SetOutlineThickness(float thickness)
+{
+    this->text.setOutlineThickness(thickness);
+}
+
+sf::Vector2f TextObject::FindCharacterPos(std::size_t index) const
+{
+    return this->text.findCharacterPos(index);
+}
+
+void TextObject::SetOrigin(const sf::Vector2f &origin)
+{
+    this->text.setOrigin(origin);
+}
+
+const sf::Vector2f &TextObject::GetOrigin() const
+{
+    return this->text.getOrigin();
+}
+
+const sf::String &TextObject::GetString() const
+{
+    return this->text.getString();
+}
+
+const sf::Font *TextObject::GetFont() const
+{
+    return this->text.getFont();
+}
+
+unsigned int TextObject::GetCharacterSize() const
+{
+    return this->text.getCharacterSize();
+}
+
+float TextObject::GetLetterSpacing() const
+{
+    return this->text.getLetterSpacing();
+}
+
+float TextObject::GetLineSpacing() const
+{
+    return this->text.getLineSpacing();
+}
+
+sf::Uint32 TextObject::GetStyle() const
+{
+    return this->text.getStyle();
+}
+
+const sf::Color &TextObject::GetFillColor() const
+{
+    return this->text.getFillColor();
+}
+
+const sf::Color &TextObject::getOutlineColor() const
+{
+    return this->text.getOutlineColor();
+}
+
+float TextObject::GetOutlineThickness() const
+{
+    return this->text.getOutlineThickness();
+}
+
+sf::FloatRect TextObject::GetBounds() const
+{
+    return this->text.getGlobalBounds();
 }
 
 // CircleObject
@@ -720,6 +903,96 @@ void CircleObject::Draw(sf::RenderWindow &window)
     this->Object::Draw(window);
 }
 
+void CircleObject::SetRadius(float radius)
+{
+    this->circle.setRadius(radius);
+}
+
+void CircleObject::SetPointCount(std::size_t count)
+{
+    this->circle.setPointCount(count);
+}
+
+sf::Vector2f CircleObject::GetPoint(std::size_t index) const
+{
+    return this->circle.getPoint(index);
+}
+
+void CircleObject::SetTexture(const sf::Texture *texture, bool resetRect)
+{
+    this->circle.setTexture(texture, resetRect);
+}
+
+void CircleObject::SetTextureRect(const sf::IntRect &rectangle)
+{
+    this->circle.setTextureRect(rectangle);
+}
+
+void CircleObject::SetFillColor(const sf::Color &color)
+{
+    this->circle.setFillColor(color);
+}
+
+void CircleObject::SetOutlineColor(const sf::Color &color)
+{
+    this->circle.setOutlineColor(color);
+}
+
+void CircleObject::setOutlineThickness(float thickness)
+{
+    this->circle.setOutlineThickness(thickness);
+}
+
+void CircleObject::SetOrigin(const sf::Vector2f &origin)
+{
+    this->circle.setOrigin(origin);
+}
+
+const sf::Vector2f &CircleObject::GetOrigin() const
+{
+    return this->circle.getOrigin();
+}
+
+float CircleObject::GetRadius() const
+{
+    return this->circle.getRadius();
+}
+
+std::size_t CircleObject::GetPointCount() const
+{
+    return this->circle.getPointCount();
+}
+
+const sf::Texture *CircleObject::GetTexture() const
+{
+    return this->circle.getTexture();
+}
+
+const sf::IntRect &CircleObject::GetTextureRect() const
+{
+    return this->circle.getTextureRect();
+}
+
+const sf::Color &CircleObject::GetFillColor() const
+{
+    return this->circle.getFillColor();
+}
+
+const sf::Color &CircleObject::GetOutlineColor() const
+{
+    return this->circle.getOutlineColor();
+}
+
+float CircleObject::GetOutlineThickness() const
+{
+    return this->circle.getOutlineThickness();
+}
+
+sf::FloatRect CircleObject::GetBounds() const
+{
+    return this->circle.getGlobalBounds();
+}
+
 // RectangleObject
 
 RectangleObject::RectangleObject() : Object()
@@ -767,6 +1040,91 @@ void RectangleObject::Draw(sf::RenderWindow &window)
     this->Object::Draw(window);
 }
 
+void RectangleObject::SetSize(const sf::Vector2f &size)
+{
+    this->rectangle.setSize(size);
+}
+
+sf::Vector2f RectangleObject::GetPoint(std::size_t index) const
+{
+    return this->rectangle.getPoint(index);
+}
+
+void RectangleObject::SetTexture(const sf::Texture *texture, bool resetRect)
+{
+    this->rectangle.setTexture(texture, resetRect);
+}
+
+void RectangleObject::SetTextureRect(const sf::IntRect &rectangle)
+{
+    this->rectangle.setTextureRect(rectangle);
+}
+
+void RectangleObject::SetFillColor(const sf::Color &color)
+{
+    this->rectangle.setFillColor(color);
+}
+
+void RectangleObject::SetOutlineColor(const sf::Color &color)
+{
+    this->rectangle.setOutlineColor(color);
+}
+
+void RectangleObject::setOutlineThickness(float thickness)
+{
+    this->rectangle.setOutlineThickness(thickness);
+}
+
+void RectangleObject::SetOrigin(const sf::Vector2f &origin)
+{
+    this->rectangle.setOrigin(origin);
+}
+
+const sf::Vector2f &RectangleObject::GetOrigin() const
+{
+    return this->rectangle.getOrigin();
+}
+
+const sf::Vector2f &RectangleObject::GetSize() const
+{
+    return this->rectangle.getSize();
+}
+
+std::size_t RectangleObject::GetPointCount() const
+{
+    return this->rectangle.getPointCount();
+}
+
+const sf::Texture *RectangleObject::GetTexture() const
+{
+    return this->rectangle.getTexture();
+}
+
+const sf::IntRect &RectangleObject::GetTextureRect() const
+{
+    return this->rectangle.getTextureRect();
+}
+
+const sf::Color &RectangleObject::GetFillColor() const
+{
+    return this->rectangle.getFillColor();
+}
+
+const sf::Color &RectangleObject::GetOutlineColor() const
+{
+    return this->rectangle.getOutlineColor();
+}
+
+float RectangleObject::GetOutlineThickness() const
+{
+    return this->rectangle.getOutlineThickness();
+}
+
+sf::FloatRect RectangleObject::GetBounds() const
+{
+    return this->rectangle.getGlobalBounds();
+}
+
 // ConvexObject
 
 ConvexObject::ConvexObject() : Object()
@@ -804,7 +1162,6 @@ void ConvexObject::Update()
     this->convexShape.setRotation(this->GetGlobalRotation());
     this->convexShape.setScale(this->GetGlobalScale());
 }
-
 void ConvexObject::Draw(sf::RenderWindow &window)
 {
     // Draw the shape
@@ -812,4 +1169,150 @@ void ConvexObject::Draw(sf::RenderWindow &window)
 
     // Draw the children of the object
     this->Object::Draw(window);
+}
+
+void ConvexObject::SetPointCount(std::size_t count)
+{
+    this->convexShape.setPointCount(count);
+}
+
+void ConvexObject::SetPoint(std::size_t index, const sf::Vector2f &point)
+{
+    this->convexShape.setPoint(index, point);
+}
+
+sf::Vector2f ConvexObject::GetPoint(std::size_t index) const
+{
+    return this->convexShape.getPoint(index);
+}
+
+void ConvexObject::SetTexture(const sf::Texture *texture, bool resetRect)
+{
+    this->convexShape.setTexture(texture, resetRect);
+}
+
+void ConvexObject::SetTextureRect(const sf::IntRect &convexShape)
+{
+    this->convexShape.setTextureRect(convexShape);
+}
+
+void ConvexObject::SetFillColor(const sf::Color &color)
+{
+    this->convexShape.setFillColor(color);
+}
+
+void ConvexObject::SetOutlineColor(const sf::Color &color)
+{
+    this->convexShape.setOutlineColor(color);
+}
+
+void ConvexObject::setOutlineThickness(float thickness)
+{
+    this->convexShape.setOutlineThickness(thickness);
+}
+
+void ConvexObject::SetOrigin(const sf::Vector2f &origin)
+{
+    this->convexShape.setOrigin(origin);
+}
+
+const sf::Vector2f &ConvexObject::GetOrigin() const
+{
+    return this->convexShape.getOrigin();
+}
+
+std::size_t ConvexObject::GetPointCount() const
+{
+    return this->convexShape.getPointCount();
+}
+
+const sf::Texture *ConvexObject::GetTexture() const
+{
+    return this->convexShape.getTexture();
+}
+
+const sf::IntRect &ConvexObject::GetTextureRect() const
+{
+    return this->convexShape.getTextureRect();
+}
+
+const sf::Color &ConvexObject::GetFillColor() const
+{
+    return this->convexShape.getFillColor();
+}
+
+const sf::Color &ConvexObject::GetOutlineColor() const
+{
+    return this->convexShape.getOutlineColor();
+}
+
+float ConvexObject::GetOutlineThickness() const
+{
+    return this->convexShape.getOutlineThickness();
+}
+
+sf::FloatRect ConvexObject::GetBounds() const
+{
+    return this->convexShape.getGlobalBounds();
+}
+
+// Collider
+
+Collider::Collider() : RectangleObject()
+{
+    this->SetFillColor(sf::Color::Transparent);
+    this->SetOutlineColor(sf::Color::Red);
+    this->setOutlineThickness(2);
+}
+Collider::Collider(std::string name) : RectangleObject(name)
+{
+    this->SetFillColor(sf::Color::Transparent);
+    this->SetOutlineColor(sf::Color::Red);
+    this->setOutlineThickness(2);
+}
+Collider::Collider(int layer) : RectangleObject(layer)
+{
+    this->SetFillColor(sf::Color::Transparent);
+    this->SetOutlineColor(sf::Color::Red);
+    this->setOutlineThickness(2);
+}
+Collider::Collider(Object *parent) : RectangleObject(parent)
+{
+    this->SetFillColor(sf::Color::Transparent);
+    this->SetOutlineColor(sf::Color::Red);
+    this->setOutlineThickness(2);
+}
+Collider::Collider(std::string name, int layer) : RectangleObject(name, layer)
+{
+    this->SetFillColor(sf::Color::Transparent);
+    this->SetOutlineColor(sf::Color::Red);
+    this->setOutlineThickness(2);
+}
+Collider::Collider(std::string name, Object *parent) : RectangleObject(name, parent)
+{
+    this->SetFillColor(sf::Color::Transparent);
+    this->SetOutlineColor(sf::Color::Red);
+    this->setOutlineThickness(2);
+}
+Collider::Collider(int layer, Object *parent) : RectangleObject(layer, parent)
+{
+    this->SetFillColor(sf::Color::Transparent);
+    this->SetOutlineColor(sf::Color::Red);
+    this->setOutlineThickness(2);
+}
+Collider::Collider(std::string name, int layer, Object *parent) : RectangleObject(name, layer, parent)
+{
+    this->SetFillColor(sf::Color::Transparent);
+    this->SetOutlineColor(sf::Color::Red);
+    this->setOutlineThickness(2);
+}
+
+bool Collider::IsVisible()
+{
+    return Collider::showColliders && this->Object::IsVisible();
+}
+
+bool Collider::IsCollider()
+{
+    return true;
 }
