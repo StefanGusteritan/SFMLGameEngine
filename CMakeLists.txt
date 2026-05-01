@@ -27,12 +27,17 @@ target_link_libraries(Engine PUBLIC sfml-graphics sfml-window sfml-system sfml-a
 # INTERFACE/PUBLIC means projects using the engine will automatically know where the headers are
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Game ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Define Example Source Files
-set(EXAMPLE_SOURCES
-    Example/main.cpp
-    Example/TestGame.cpp
-)
+# Only build the example if this is the top-level project
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    # Define Example Source Files
+    set(EXAMPLE_SOURCES
+        Example/main.cpp
+        Example/TestGame.cpp
+    )
 
-# Create Executable (The Test Game)
-add_executable(TestGame ${EXAMPLE_SOURCES})
-target_link_libraries(TestGame Engine)
+    # Create Executable (The Test Game)
+    add_executable(TestGame ${EXAMPLE_SOURCES})
+    set_target_properties(TestGame PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+             "${CMAKE_BINARY_DIR}/Release")
+    target_link_libraries(TestGame Engine)
+endif()
