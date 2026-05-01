@@ -55,20 +55,19 @@ The engine doesn't just "add" offsets; it uses basis-vector math to ensure that 
 - **Global Calculation**: `GlobalPos = ParentPos + (LocalX * ParentRight * ParentScaleX) + (LocalY * ParentUp * ParentScaleY)`.
 - **Result**: If you rotate a car, the steering wheel child-object stays inside the car and rotates with it perfectly.
 
-### 3.2 The Event System
+### 3.2 Hierarchical Activation
+
+The engine uses a "Barrier" propagation system for object activity.
+
+- **Propagation**: Setting a parent to `inactive` propagates `parentActive = false` down the tree.
+- **Barriers**: If a child is locally `inactive`, the propagation stops at that child. This ensures that when a root is re-activated, specific sub-trees that were manually disabled stay disabled.
+
+### 3.3 The Event System
 
 Objects override `GetEventsToSubscribe()` to return a list of `sf::Event::EventType`.
 
 - **Efficiency**: The `Scene` only iterates over objects that care about a specific event.
 - **Hierarchical Respect**: If a parent is `inactive`, its children will **not** receive events, even if the children themselves are marked as active.
-
-### 3.3 The Logging System
-
-The engine features a robust logging utility managed via `Logger.h`.
-
-- **Master Switch**: `#define ENGINE_LOGGING_ENABLED` can be set to `0` in `Logger.h` to completely strip all logging code from the binary for maximum production performance.
-- **Runtime Toggle**: When enabled, `Logger::ToggleDebug(bool)` allows silencing/enabling logs at runtime without recompilation.
-- **Macros**: Use `LOG("Message" << variable)` and `LOG_ERR("Error")`. These automatically handle `std::endl`.
 
 ### 3.4 The Collision System
 
@@ -77,8 +76,19 @@ A "Strict Collider" system designed for high performance and hierarchical flexib
 - **The `Collider` Entity**: A specialized `RectangleObject` that serves as a physical hitbox.
 - **Hierarchical Bounds**: Colliders can be attached to any object (e.g., a sprite) as children. They inherit the parent's position, rotation, and scale.
 - **Efficient Queries**: The `Scene` maintains a flat list of active colliders. Deletions use the "Swap and Pop" technique for $O(1)$ performance.
+- **Predictive Queries**: `GetCollisions` supports passing a `sf::FloatRect` and a `source` object to check for collisions _before_ movement occurs.
+- **Solid vs. Trigger**: Colliders have a `solidState`. Queries can be filtered to only return solid objects (e.g., for wall blocking) or all objects (e.g., for area triggers).
+- **Transformation Offsets**: The `Collider` class provides `GetBoundsOffsetPosition/Rotation/Scale` methods to calculate future bounding boxes without moving the actual object.
 - **Memory Safety**: `GetCollisions` uses output parameters (`std::vector<Object*>&`) to avoid heap allocations during the game loop.
 - **Debug Drawing**: Globally toggle hitbox visibility with `Collider::ToggleDebug(true)`.
+
+### 3.5 The Logging System
+
+The engine features a robust logging utility managed via `Logger.h`.
+
+- **Master Switch**: `#define ENGINE_LOGGING_ENABLED` can be set to `0` in `Logger.h` to completely strip all logging code from the binary for maximum production performance.
+- **Runtime Toggle**: When enabled, `Logger::ToggleDebug(bool)` allows silencing/enabling logs at runtime without recompilation.
+- **Macros**: Use `LOG("Message" << variable)` and `LOG_ERR("Error")`. These automatically handle `std::endl`.
 
 ---
 
@@ -104,13 +114,16 @@ The root of all entities.
 - **`RemoveObject(Object*)`**: Marks for safe deletion. **Do not use `delete`**.
 - **`SetObjectParent(parent, child)`**: Handles reparenting. Passing `nullptr` as parent makes the object a root object.
 - **`SetObjectLayer(int, Object*)`**: Changes the render depth. Children follow their parent's layer.
-- **`GetCollisions(target, outVector)`**: Efficiently finds all objects intersecting with the target collider.
+- **`GetCollisions(target, outVector, onlySolid)`**: Finds intersections using an existing Collider.
+- **`GetCollisions(targetRect, source, outVector, onlySolid)`**: Finds intersections for a hypothetical area, ignoring the `source` object to prevent self-collision.
 
 ### 4.3 `RectangleObject` Class
+
 - **`SetSize(sf::Vector2f)`**: Dynamically resize the rectangle.
 - **`GetSize()`**: Returns the current dimensions.
 
 ### 4.4 `Collider` Class (Inherits from `RectangleObject`)
+
 - **`SetSize(sf::Vector2f)` / `SetOrigin(sf::Vector2f)`**: Publicly exposed for hitbox configuration.
 - **`IsVisible()`**: Overridden to respect the global `Collider::showColliders` debug toggle.
 

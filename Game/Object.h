@@ -36,6 +36,8 @@ private:
 
     // Active state of the object (if it's false the update function will not be called)
     bool active;
+    // Global active state (respects all of the ancestors active states)
+    bool parentActive;
     // Visible state of the object (if it's false the draw function will not be called)
     bool visible;
 
@@ -132,6 +134,8 @@ public:
 
     // True if the object is a collider type
     virtual bool IsCollider();
+    // True if the collider is solid
+    virtual bool IsSolid();
 
     // Get the global position of the object
     sf::Vector2f GetGlobalPosition();
@@ -139,6 +143,12 @@ public:
     float GetGlobalRotation();
     // Get the global scale of the object
     sf::Vector2f GetGlobalScale();
+    // Calculate the new global position of an object based on its new local position and its parent
+    sf::Vector2f NewGlobalPosition(sf::Vector2f newLocalPosition);
+    // Calculate the new global rotation of an object based on its new local rotation and its parent
+    float NewGlobalRotation(float newLocalRotation);
+    // Calculate the new global scale of an object based on its new local scale and parent
+    sf::Vector2f NewGlobalScale(sf::Vector2f newLocalScale);
     // Get the local position of the object
     sf::Vector2f GetPosition();
     // Get the local rotation of the object
@@ -146,8 +156,7 @@ public:
     // Get the local scale of the object
     sf::Vector2f GetScale();
     // Get the bounding rectangle of the object.
-    virtual sf::FloatRect GetBounds() const;
-
+    virtual sf::FloatRect GetBounds();
     // True if the object is a child of another object
     bool IsChild();
     // Get the parent of the object
@@ -211,9 +220,6 @@ public:
 
     // Get the global color of the sprite.
     const sf::Color &GetColor() const;
-
-    // Get the bounding rectangle of the object.
-    sf::FloatRect GetBounds() const;
 };
 
 // Object that has a text
@@ -288,9 +294,6 @@ public:
     const sf::Color &getOutlineColor() const;
     // Get the outline thickness of the text.
     float GetOutlineThickness() const;
-
-    // Get the bounding rectangle of the object.
-    sf::FloatRect GetBounds() const;
 };
 
 // Object that has a circle shape
@@ -356,9 +359,6 @@ public:
     const sf::Color &GetOutlineColor() const;
     // Get the outline thickness of the shape.
     float GetOutlineThickness() const;
-
-    // Get the bounding rectangle of the object.
-    sf::FloatRect GetBounds() const;
 };
 
 // Object that has a rectangle shape
@@ -369,6 +369,8 @@ private:
 
     // Draw the object
     void Draw(sf::RenderWindow &window) override;
+
+    friend class Collider;
 
 protected:
     // Update object each frame add changes to the rectangle
@@ -422,9 +424,6 @@ public:
     const sf::Color &GetOutlineColor() const;
     // Get the outline thickness of the shape.
     float GetOutlineThickness() const;
-
-    // Get the bounding rectangle of the object.
-    sf::FloatRect GetBounds() const;
 };
 
 // Object that has a convex shape
@@ -488,9 +487,6 @@ public:
     const sf::Color &GetOutlineColor() const;
     // Get the outline thickness of the shape.
     float GetOutlineThickness() const;
-
-    // Get the bounding rectangle of the object.
-    sf::FloatRect GetBounds() const;
 };
 
 // Rectangle that has the ability to collide with other objects of this class
@@ -498,6 +494,10 @@ class Collider : public RectangleObject
 {
 private:
     static bool showColliders;
+
+    sf::RectangleShape offsetRectangle;
+
+    bool solidState;
 
 public:
     static void ToggleDebug(bool state);
@@ -515,6 +515,18 @@ public:
     bool IsVisible() override;
 
     bool IsCollider() override;
+    bool IsSolid() override;
+
+    void SetSolid(bool solid);
+
+    // Get the bounding rectangle of the object
+    sf::FloatRect GetBounds() override;
+    // Get the bounding rectangle of the object with an offset position.
+    sf::FloatRect GetBoundsOffsetPosition(sf::Vector2f offset);
+    // Get the bounding rectangle of the object with an offset rotation.
+    sf::FloatRect GetBoundsOffsetRotation(float offset);
+    // Get the bounding rectangle of the object with an offset scale.
+    sf::FloatRect GetBoundsOffsetScale(sf::Vector2f offset);
 
     using RectangleObject::GetOrigin;
     using RectangleObject::GetPoint;

@@ -6,7 +6,8 @@ class TestPlayer : public RectangleObject
 {
 private:
     // Basic movement
-    float speed = 200.f;
+    sf::Vector2f movement;
+    float speed = 200.f, dt, magnitude;
     Collider *myCollider;
     std::vector<Object *> currentCollisions;
 
@@ -20,8 +21,8 @@ public:
 
         // Add a collider as a child
         myCollider = new Collider("PlayerCollider", this);
-        myCollider->SetSize({50.f, 50.f});
-        myCollider->SetOrigin({25.f, 25.f});
+        myCollider->SetSize({48.f, 48.f});
+        myCollider->SetOrigin({24.f, 24.f});
         // We can show it for debugging
         Collider::ToggleDebug(true);
     }
@@ -34,19 +35,47 @@ public:
 
     void Update() override
     {
-        this->RectangleObject::Update();
+        movement = sf::Vector2f();
+        dt = game.time.GetDT();
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-            Move({0, -1}, speed, game.time.GetDT());
+            movement.y -= 1;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-            Move({0, 1}, speed, game.time.GetDT());
+            movement.y += 1;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-            Move({-1, 0}, speed, game.time.GetDT());
+            movement.x -= 1;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-            Move({1, 0}, speed, game.time.GetDT());
+            movement.x += 1;
+
+        magnitude = sqrt(movement.x * movement.x + movement.y * movement.y);
+        if (magnitude != 0)
+            movement /= magnitude;
+
+        if (movement.x != 0)
+        {
+            game.sceneManager.GetCollisions(
+                myCollider->GetBoundsOffsetPosition({movement.x * speed * dt, 0}),
+                currentCollisions,
+                true);
+            if (!currentCollisions.empty())
+                movement.x = 0;
+        }
+        if (movement.y != 0)
+        {
+            game.sceneManager.GetCollisions(
+                myCollider->GetBoundsOffsetPosition({0, movement.y * speed * dt}),
+                currentCollisions,
+                true);
+            if (!currentCollisions.empty())
+                movement.y = 0;
+        }
+
+        Move(movement, speed, dt);
 
         // Check for collisions using the global game reference
         this->CheckCollision();
+
+        this->RectangleObject::Update();
     }
 
     // We'll use a custom method to check collisions, or do it in the Scene/Game loop
@@ -55,7 +84,8 @@ public:
         game.sceneManager.GetCollisions(myCollider, currentCollisions);
         if (!currentCollisions.empty())
         {
-            LOG("Player is colliding with " << currentCollisions.size() << " objects!");
+            if (GetFillColor() == sf::Color::Blue)
+                LOG("Player is colliding with " << currentCollisions.size() << " objects!");
             SetFillColor(sf::Color::Red); // Visual feedback
         }
         else
@@ -72,16 +102,21 @@ private:
     Collider *wallCollider;
 
 public:
-    TestWall(sf::Vector2f pos, sf::Vector2f size) : RectangleObject("Wall")
+    TestWall(sf::Vector2f pos, sf::Vector2f size, bool solid) : RectangleObject("Wall")
     {
         SetSize(size);
+        SetOrigin(size / 2.f);
         SetPosition(pos);
-        SetFillColor(sf::Color::Green);
+
+        if (solid)
+            SetFillColor(sf::Color::Green);
+        else
+            SetFillColor(sf::Color{0, 255, 0, 63});
 
         wallCollider = new Collider("WallCollider", this);
-        wallCollider->SetSize(size);
-        wallCollider->SetOrigin(size / 2.f);
-        SetOrigin(size / 2.f);
+        wallCollider->SetSolid(solid);
+        wallCollider->SetSize({size.x - 2, size.y - 2});
+        wallCollider->SetOrigin({(size.x - 2) / 2.f, (size.y - 2) / 2.f});
     }
 
     const std::vector<Object *> GetChildrenToAdd() override

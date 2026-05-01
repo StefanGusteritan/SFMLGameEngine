@@ -161,6 +161,8 @@ void Scene::AddObject(Object *o)
                         << " Setting layer from: " << o->layer
                         << " to: " << p->layer);
         o->layer = p->layer;
+
+        o->parentActive = p->IsActive();
     }
     // If the object is not a child add it to the scene
     else
@@ -173,6 +175,8 @@ void Scene::AddObject(Object *o)
 
             o->hasParent = false;
         }
+
+        o->parentActive = true;
 
         // Add the object to the scene
         this->layers[o->layer].push_back(o);
@@ -536,6 +540,8 @@ void Scene::ChangeParents()
         {
             p->AddChild(o);
 
+            o->parentActive = p->IsActive();
+
             // Make objects layer match its new parent
             if (o->layer != p->layer)
             {
@@ -557,6 +563,8 @@ void Scene::ChangeParents()
                     const std::vector<Object *> &children = c->GetChildren();
                     allChildren.insert(allChildren.end(), children.begin(), children.end());
 
+                    c->parentActive = c->parent->IsActive();
+
                     c->layer = o->layer;
                     LOG("Moved: " << c->name << '-' << c
                                   << " from: " << this->name << '-' << this
@@ -572,6 +580,29 @@ void Scene::ChangeParents()
             // Add the object to the new layer
             this->layers[l].push_back(o);
             o->objectIndex = this->layers[l].size() - 1;
+
+            o->parentActive = true;
+            if (o->active)
+            {
+                std::vector<Object *> allChildren = o->GetChildren();
+                for (int j = 0; j < allChildren.size(); j++)
+                {
+                    Object *c = allChildren.at(j);
+                    allChildren[j] = nullptr;
+
+                    if (!c || !c->IsRegistered())
+                        continue;
+
+                    c->parentActive = true;
+
+                    if (!c->active)
+                        continue;
+
+                    const std::vector<Object *> &children = c->GetChildren();
+                    allChildren.insert(allChildren.end(), children.begin(), children.end());
+                    c->children.clear();
+                }
+            }
 
             LOG("Added: " << o->name << '-' << o
                           << " to: " << this->name << '-' << this
@@ -729,22 +760,7 @@ void Scene::OnEvent(sf::Event event)
             continue;
         }
 
-        bool active = true;
-        Object *p = o;
-        while (p && p->IsRegistered() && active)
-        {
-            active = p->active;
-            p = p->parent;
-        }
-
-        if (p && !p->IsRegistered())
-        {
-            LOG_ERR("Failed to call: " << o->name << '-' << o
-                                       << " OnEvent() (NULL pointer to parent or not registered parent)");
-            continue;
-        }
-
-        if (!active)
+        if (!o->IsActive())
             continue;
 
         o->OnEvent(event);
@@ -799,7 +815,7 @@ void Scene::Draw(sf::RenderWindow &window)
         }
 }
 
-void Scene::GetCollisions(Object *target, std::vector<Object *> &outCollisions)
+void Scene::GetCollisions(Object *target, std::vector<Object *> &outCollisions, bool onlySolid)
 {
     outCollisions.clear();
 
@@ -816,22 +832,7 @@ void Scene::GetCollisions(Object *target, std::vector<Object *> &outCollisions)
         return;
     }
 
-    bool active = true;
-    Object *p = target;
-    while (p && p->IsRegistered() && active)
-    {
-        active = p->active;
-        p = p->parent;
-    }
-
-    if (p && !p->IsRegistered())
-    {
-        LOG_ERR("Failed to get colliders with: " << target->name << '-' << target
-                                                 << " (NULL pointer to parent or not registered parent)");
-        return;
-    }
-
-    if (!active)
+    if (!target->IsActive())
         return;
 
     sf::FloatRect targetBounds = target->GetBounds();
@@ -847,26 +848,39 @@ void Scene::GetCollisions(Object *target, std::vector<Object *> &outCollisions)
         if (other == target)
             continue;
 
-        active = true;
-        Object *p = other;
-        while (p && p->IsRegistered() && active)
-        {
-            active = p->active;
-            p = p->parent;
-        }
-
-        if (p && !p->IsRegistered())
-        {
-            LOG_ERR("Failed to check collision between: " << target->name << '-' << target
-                                                          << " and: " << other->name << '-' << other
-                                                          << " (NULL pointer to parent or not registered parent)");
+        if (!other->IsActive())
             continue;
-        }
 
-        if (!active)
+        if (onlySolid && !other->IsSolid())
             continue;
 
         if (targetBounds.intersects(other->GetBounds()))
+            outCollisions.push_back(other);
+    }
+}
+
+void Scene::GetCollisions(const sf::FloatRect target, Object *source, std::vector<Object *> &outCollisions, bool onlySolid)
+{
+    outCollisions.clear();
+
+    for (Object *other : this->colliders)
+    {
+        if (!other || !other->IsRegistered())
+        {
+            LOG_ERR("Failed to check collision between: target and other (NULL pointer or not register)");
+            continue;
+        }
+
+        if (other == source)
+            continue;
+
+        if (!other->IsActive())
+            continue;
+
+        if (onlySolid && !other->IsSolid())
+            continue;
+
+        if (target.intersects(other->GetBounds()))
             outCollisions.push_back(other);
     }
 }
@@ -1065,7 +1079,7 @@ void SceneManager::Draw(sf::RenderWindow &window)
     this->activeScene->Draw(window);
 }
 
-void SceneManager::GetCollisions(Object *target, std::vector<Object *> &outCollisions)
+void SceneManager::GetCollisions(Object *target, std::vector<Object *> &outCollisions, bool onlySolid)
 {
     // Verify the active scene to exist
     if (!this->activeScene)
@@ -1074,7 +1088,19 @@ void SceneManager::GetCollisions(Object *target, std::vector<Object *> &outColli
         return;
     }
 
-    this->activeScene->GetCollisions(target, outCollisions);
+    this->activeScene->GetCollisions(target, outCollisions, onlySolid);
+}
+
+void SceneManager::GetCollisions(const sf::FloatRect target, Object *source, std::vector<Object *> &outCollisions, bool onlySolid)
+{
+    // Verify the active scene to exist
+    if (!this->activeScene)
+    {
+        LOG_ERR("Failed to set objects layer in active scene (NULL pointer to scene)");
+        return;
+    }
+
+    this->activeScene->GetCollisions(target, source, outCollisions, onlySolid);
 }
 
 sf::View &SceneManager::GetCamera()

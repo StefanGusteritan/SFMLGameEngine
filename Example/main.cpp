@@ -2,7 +2,7 @@
 
 int main()
 {
-    game.sceneManager.ChangeScene(stressTestScene);
+    game.sceneManager.ChangeScene(collisionTestScene);
 
     game.Run();
 

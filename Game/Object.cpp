@@ -21,9 +21,9 @@ Object::Object() : name("Object"), hasParent(false), parent(nullptr)
     this->newLayer = 0;
     this->registered = false;
     this->objectIndex = 0;
-    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
     this->colliderIndex = 0;
     this->active = true;
+    this->parentActive = true;
     this->visible = true;
     this->newParent = nullptr;
     this->toBeDeleted = false;
@@ -50,9 +50,9 @@ Object::Object(std::string name) : name(name), hasParent(false), parent(nullptr)
     this->newLayer = 0;
     this->registered = false;
     this->objectIndex = 0;
-    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
     this->colliderIndex = 0;
     this->active = true;
+    this->parentActive = true;
     this->visible = true;
     this->newParent = nullptr;
     this->toBeDeleted = false;
@@ -79,9 +79,9 @@ Object::Object(int layer) : name("Object"), hasParent(false), parent(nullptr)
     this->newLayer = 0;
     this->registered = false;
     this->objectIndex = 0;
-    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
     this->colliderIndex = 0;
     this->active = true;
+    this->parentActive = true;
     this->visible = true;
     this->newParent = nullptr;
     this->toBeDeleted = false;
@@ -108,9 +108,9 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
     this->newLayer = 0;
     this->registered = false;
     this->objectIndex = 0;
-    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
     this->colliderIndex = 0;
     this->active = true;
+    this->parentActive = true;
     this->visible = true;
     this->newParent = nullptr;
     this->toBeDeleted = false;
@@ -122,7 +122,7 @@ Object::Object(Object *parent) : name("Object"), hasParent(parent != nullptr), p
     this->rotation = 0;
     this->scale = sf::Vector2f(1, 1);
 
-    // Verify the parent to exist and not to be a collider
+    // Verify the parent to exist
     if (!parent)
     {
         // If the parent doesn't exist the object is created without a parent
@@ -156,9 +156,9 @@ Object::Object(std::string name, int layer) : name(name), hasParent(false), pare
     this->newLayer = 0;
     this->registered = false;
     this->objectIndex = 0;
-    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
     this->colliderIndex = 0;
     this->active = true;
+    this->parentActive = true;
     this->visible = true;
     this->newParent = nullptr;
     this->toBeDeleted = false;
@@ -185,9 +185,9 @@ Object::Object(std::string name, Object *parent) : name(name), hasParent(parent 
     this->newLayer = 0;
     this->registered = false;
     this->objectIndex = 0;
-    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
     this->colliderIndex = 0;
     this->active = true;
+    this->parentActive = true;
     this->visible = true;
     this->newParent = nullptr;
     this->toBeDeleted = false;
@@ -233,9 +233,9 @@ Object::Object(int layer, Object *parent) : name("Object"), hasParent(parent != 
     this->newLayer = 0;
     this->registered = false;
     this->objectIndex = 0;
-    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
     this->colliderIndex = 0;
     this->active = true;
+    this->parentActive = true;
     this->visible = true;
     this->newParent = nullptr;
     this->toBeDeleted = false;
@@ -281,9 +281,9 @@ Object::Object(std::string name, int layer, Object *parent) : name(name), hasPar
     this->newLayer = 0;
     this->registered = false;
     this->objectIndex = 0;
-    this->subscriberIndices = std::unordered_map<sf::Event::EventType, size_t>();
     this->colliderIndex = 0;
     this->active = true;
+    this->parentActive = true;
     this->visible = true;
     this->newParent = nullptr;
     this->toBeDeleted = false;
@@ -350,9 +350,6 @@ void Object::SetPosition(sf::Vector2f newPosition)
 
 void Object::Move(sf::Vector2f direction, float speed, float dt)
 {
-    float magnitude = sqrt(direction.x * direction.x + direction.y * direction.y);
-    if (magnitude != 0)
-        direction /= magnitude;
     this->position += direction * speed * dt;
 }
 
@@ -373,12 +370,35 @@ void Object::SetScale(sf::Vector2f newScale)
 
 bool Object::IsActive()
 {
-    return this->active;
+    return this->active && this->parentActive;
 }
 
 void Object::SetActive(bool a)
 {
     this->active = a;
+
+    // Set objects children and all of their children global active state
+    if (a == false || (a == true && this->parentActive == true))
+    {
+        std::vector<Object *> allChildren = this->GetChildren();
+        for (int j = 0; j < allChildren.size(); j++)
+        {
+            Object *c = allChildren.at(j);
+            allChildren[j] = nullptr;
+
+            if (!c || !c->IsRegistered())
+                continue;
+
+            c->parentActive = a;
+
+            if (!c->active)
+                continue;
+
+            const std::vector<Object *> &children = c->GetChildren();
+            allChildren.insert(allChildren.end(), children.begin(), children.end());
+            c->children.clear();
+        }
+    }
 }
 
 bool Object::IsVisible()
@@ -387,6 +407,11 @@ bool Object::IsVisible()
 }
 
 bool Object::IsCollider()
+{
+    return false;
+}
+
+bool Object::IsSolid()
 {
     return false;
 }
@@ -402,37 +427,10 @@ void Object::OnEvent(sf::Event event)
 
 void Object::Update()
 {
-    if (this->hasParent && parent->IsRegistered())
-    {
-        // Updates the global transform based of the parent transform
-
-        // Get the parent transform
-        float parentRotation = this->parent->globalRotation;
-        float parentRotationRad = parentRotation * 3.14159265358979323846 / 180;
-        sf::Vector2f parentPosition = this->parent->globalPosition;
-        sf::Vector2f parentRight(cos(parentRotationRad), sin(parentRotationRad));
-        sf::Vector2f parentUp(-parentRight.y, parentRight.x);
-        sf::Vector2f parentScale = this->parent->globalScale;
-
-        // The global position is the sum of the parent position and the local position rotated and scaled by the parent transform
-        sf::Vector2f finalPosition;
-        finalPosition = this->position.x * parentRight * parentScale.x + this->position.y * parentUp * parentScale.y;
-        finalPosition = finalPosition + parentPosition;
-        this->globalPosition = finalPosition;
-
-        // The global rotation is the sum of the parent rotation and the local rotation
-        this->globalRotation = parentRotation + this->rotation;
-
-        // The global scale is the product of the parent scale and the local scale
-        this->globalScale = sf::Vector2f(parentScale.x * this->scale.x, parentScale.y * this->scale.y);
-    }
-    else
-    {
-        // If the object has no parent the global transform is the same as the local transform
-        this->globalPosition = this->position;
-        this->globalRotation = this->rotation;
-        this->globalScale = this->scale;
-    }
+    // Updates the global transform based of the parent transform
+    this->globalPosition = this->NewGlobalPosition(this->position);
+    this->globalRotation = this->NewGlobalRotation(this->rotation);
+    this->globalScale = this->NewGlobalScale(this->scale);
 
     // Update the children of the object
     for (auto c : this->children)
@@ -510,8 +508,10 @@ sf::Vector2f Object::GetScale()
     return this->scale;
 }
 
-sf::FloatRect Object::GetBounds() const
+sf::FloatRect Object::GetBounds()
 {
+    LOG_ERR("Failed to get bounds of: " << this->name << '-' << this
+                                        << " (Not a collider)");
     return sf::FloatRect();
 }
 
@@ -541,6 +541,44 @@ const std::vector<Object *> &Object::GetChildren()
 const std::vector<Object *> Object::GetChildrenToAdd()
 {
     return std::vector<Object *>();
+}
+
+sf::Vector2f Object::NewGlobalPosition(sf::Vector2f newLocalPosition)
+{
+    if (!(this->hasParent && parent->IsRegistered()))
+        return newLocalPosition;
+
+    // Get the parent transform
+    float parentRotation = this->parent->globalRotation;
+    float parentRotationRad = parentRotation * 3.14159265358979323846 / 180;
+    sf::Vector2f parentPosition = this->parent->globalPosition;
+    sf::Vector2f parentRight(cos(parentRotationRad), sin(parentRotationRad));
+    sf::Vector2f parentUp(-parentRight.y, parentRight.x);
+    sf::Vector2f parentScale = this->parent->globalScale;
+
+    // The global position is the sum of the parent position and the local position rotated and scaled by the parent transform
+    sf::Vector2f finalPosition;
+    finalPosition = newLocalPosition.x * parentRight * parentScale.x + newLocalPosition.y * parentUp * parentScale.y;
+    finalPosition = finalPosition + parentPosition;
+
+    return finalPosition;
+}
+
+float Object::NewGlobalRotation(float newLocalRotation)
+{
+    if (!(this->hasParent && parent->IsRegistered()))
+        return newLocalRotation;
+
+    return this->parent->globalRotation + newLocalRotation;
+}
+
+sf::Vector2f Object::NewGlobalScale(sf::Vector2f newLocalScale)
+{
+    if (!(this->hasParent && parent->IsRegistered()))
+        return newLocalScale;
+
+    sf::Vector2f parentScale = this->parent->globalScale;
+    return sf::Vector2f(parentScale.x * newLocalScale.x, parentScale.y * newLocalScale.y);
 }
 
 void Object::AddChild(Object *c)
@@ -692,11 +730,6 @@ const sf::IntRect &SpriteObject::GetTextureRect() const
 const sf::Color &SpriteObject::GetColor() const
 {
     return this->sprite.getColor();
-}
-
-sf::FloatRect SpriteObject::GetBounds() const
-{
-    return this->sprite.getGlobalBounds();
 }
 
 // TextObject
@@ -851,11 +884,6 @@ float TextObject::GetOutlineThickness() const
     return this->text.getOutlineThickness();
 }
 
-sf::FloatRect TextObject::GetBounds() const
-{
-    return this->text.getGlobalBounds();
-}
-
 // CircleObject
 
 CircleObject::CircleObject() : Object()
@@ -988,11 +1016,6 @@ float CircleObject::GetOutlineThickness() const
     return this->circle.getOutlineThickness();
 }
 
-sf::FloatRect CircleObject::GetBounds() const
-{
-    return this->circle.getGlobalBounds();
-}
-
 // RectangleObject
 
 RectangleObject::RectangleObject() : Object()
@@ -1118,11 +1141,6 @@ const sf::Color &RectangleObject::GetOutlineColor() const
 float RectangleObject::GetOutlineThickness() const
 {
     return this->rectangle.getOutlineThickness();
-}
-
-sf::FloatRect RectangleObject::GetBounds() const
-{
-    return this->rectangle.getGlobalBounds();
 }
 
 // ConvexObject
@@ -1251,60 +1269,63 @@ float ConvexObject::GetOutlineThickness() const
     return this->convexShape.getOutlineThickness();
 }
 
-sf::FloatRect ConvexObject::GetBounds() const
-{
-    return this->convexShape.getGlobalBounds();
-}
-
 // Collider
 
 Collider::Collider() : RectangleObject()
 {
+    this->solidState = false;
     this->SetFillColor(sf::Color::Transparent);
     this->SetOutlineColor(sf::Color::Red);
-    this->setOutlineThickness(2);
+    this->setOutlineThickness(1);
 }
 Collider::Collider(std::string name) : RectangleObject(name)
 {
+    this->solidState = false;
     this->SetFillColor(sf::Color::Transparent);
     this->SetOutlineColor(sf::Color::Red);
-    this->setOutlineThickness(2);
+    this->setOutlineThickness(1);
 }
 Collider::Collider(int layer) : RectangleObject(layer)
 {
+    this->solidState = false;
     this->SetFillColor(sf::Color::Transparent);
     this->SetOutlineColor(sf::Color::Red);
-    this->setOutlineThickness(2);
+    this->setOutlineThickness(1);
 }
 Collider::Collider(Object *parent) : RectangleObject(parent)
 {
+    this->solidState = false;
     this->SetFillColor(sf::Color::Transparent);
     this->SetOutlineColor(sf::Color::Red);
-    this->setOutlineThickness(2);
+    this->setOutlineThickness(1);
 }
 Collider::Collider(std::string name, int layer) : RectangleObject(name, layer)
 {
+    this->solidState = false;
     this->SetFillColor(sf::Color::Transparent);
     this->SetOutlineColor(sf::Color::Red);
-    this->setOutlineThickness(2);
+    this->setOutlineThickness(1);
 }
 Collider::Collider(std::string name, Object *parent) : RectangleObject(name, parent)
 {
+    this->solidState = false;
     this->SetFillColor(sf::Color::Transparent);
     this->SetOutlineColor(sf::Color::Red);
-    this->setOutlineThickness(2);
+    this->setOutlineThickness(1);
 }
 Collider::Collider(int layer, Object *parent) : RectangleObject(layer, parent)
 {
+    this->solidState = false;
     this->SetFillColor(sf::Color::Transparent);
     this->SetOutlineColor(sf::Color::Red);
-    this->setOutlineThickness(2);
+    this->setOutlineThickness(1);
 }
 Collider::Collider(std::string name, int layer, Object *parent) : RectangleObject(name, layer, parent)
 {
+    this->solidState = false;
     this->SetFillColor(sf::Color::Transparent);
     this->SetOutlineColor(sf::Color::Red);
-    this->setOutlineThickness(2);
+    this->setOutlineThickness(1);
 }
 
 bool Collider::IsVisible()
@@ -1315,4 +1336,58 @@ bool Collider::IsVisible()
 bool Collider::IsCollider()
 {
     return true;
+}
+
+bool Collider::IsSolid()
+{
+    return this->solidState;
+}
+
+void Collider::SetSolid(bool solid)
+{
+    this->solidState = solid;
+}
+
+sf::FloatRect Collider::GetBounds()
+{
+    offsetRectangle.setSize(this->rectangle.getSize());
+    offsetRectangle.setOrigin(this->rectangle.getOrigin());
+    offsetRectangle.setOutlineThickness(this->rectangle.getOutlineThickness());
+    offsetRectangle.setPosition(this->NewGlobalPosition(this->GetPosition()));
+    offsetRectangle.setRotation(this->NewGlobalRotation(this->GetRotation()));
+    offsetRectangle.setScale(this->NewGlobalScale(this->GetScale()));
+    return offsetRectangle.getGlobalBounds();
+}
+
+sf::FloatRect Collider::GetBoundsOffsetPosition(sf::Vector2f offset)
+{
+    offsetRectangle.setSize(this->rectangle.getSize());
+    offsetRectangle.setOrigin(this->rectangle.getOrigin());
+    offsetRectangle.setOutlineThickness(this->rectangle.getOutlineThickness());
+    offsetRectangle.setPosition(this->NewGlobalPosition(this->GetPosition() + offset));
+    offsetRectangle.setRotation(this->NewGlobalRotation(this->GetRotation()));
+    offsetRectangle.setScale(this->NewGlobalScale(this->GetScale()));
+    return offsetRectangle.getGlobalBounds();
+}
+
+sf::FloatRect Collider::GetBoundsOffsetRotation(float offset)
+{
+    offsetRectangle.setSize(this->rectangle.getSize());
+    offsetRectangle.setOrigin(this->rectangle.getOrigin());
+    offsetRectangle.setOutlineThickness(this->rectangle.getOutlineThickness());
+    offsetRectangle.setPosition(this->NewGlobalPosition(this->GetPosition()));
+    offsetRectangle.setRotation(this->NewGlobalRotation(this->GetRotation() + offset));
+    offsetRectangle.setScale(this->NewGlobalScale(this->GetScale()));
+    return offsetRectangle.getGlobalBounds();
+}
+
+sf::FloatRect Collider::GetBoundsOffsetScale(sf::Vector2f offset)
+{
+    offsetRectangle.setSize(this->rectangle.getSize());
+    offsetRectangle.setOrigin(this->rectangle.getOrigin());
+    offsetRectangle.setOutlineThickness(this->rectangle.getOutlineThickness());
+    offsetRectangle.setPosition(this->NewGlobalPosition(this->GetPosition()));
+    offsetRectangle.setRotation(this->NewGlobalRotation(this->GetRotation()));
+    offsetRectangle.setScale(this->NewGlobalScale({this->GetScale().x * offset.x, this->GetScale().y * offset.y}));
+    return offsetRectangle.getGlobalBounds();
 }

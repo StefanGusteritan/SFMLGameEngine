@@ -56,8 +56,8 @@ SceneBuilder collisionTestScene("CollisionTest",
                                   objects.push_back(new TestPlayer());
 
                                   // Add some walls
-                                  objects.push_back(new TestWall({200.f, 200.f}, {100.f, 50.f}));
-                                  objects.push_back(new TestWall({600.f, 400.f}, {50.f, 150.f}));
+                                  objects.push_back(new TestWall({200.f, 200.f}, {100.f, 50.f}, true));
+                                  objects.push_back(new TestWall({600.f, 400.f}, {50.f, 150.f}, false));
 
                                   return objects;
                                 });

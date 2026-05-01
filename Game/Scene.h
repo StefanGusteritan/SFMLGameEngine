@@ -57,8 +57,13 @@ private:
     // Draw every visble Object
     void Draw(sf::RenderWindow &window);
 
-    // Get a list of the colliders that the target intersects with
-    void GetCollisions(Object *target, std::vector<Object *> &outCollisions);
+    // Get a list of the colliders that the target object intersects with
+    // If called with onlySolid = true will get the collisions only with objects marked as solid
+    void GetCollisions(Object *target, std::vector<Object *> &outCollisions, bool onlySolid);
+    // Get a list of the colliders that the target rectangle intersects with
+    // If called with onlySolid = true will get the collisions only with objects marked as solid
+    // Returns true if there are collisions with objects that have the same bounds
+    void GetCollisions(const sf::FloatRect target, Object *source, std::vector<Object *> &outCollisions, bool OnlySolid);
 
     friend class SceneManager;
 
@@ -154,8 +159,13 @@ public:
     // Sets the layer of the specified object
     void SetObjectLayer(int layer, Object *o);
 
-    // Get a list of the colliders that the target intersects with
-    void GetCollisions(Object *target, std::vector<Object *> &outCollisions);
+    // Get a list of the colliders that the target object intersects with
+    // If called with onlySolid = true will get the collisions only with objects marked as solid
+    void GetCollisions(Object *target, std::vector<Object *> &outCollisions, bool onlySolid = false);
+    // Get a list of the colliders that the target rectangle intersects with
+    // If called with onlySolid = true will get the collisions only with objects marked as solid
+    // Returns true if there are collisions with objects that have the same bounds
+    void GetCollisions(const sf::FloatRect target, Object *source, std::vector<Object *> &outCollisions, bool onlySolid = false);
 
     // Get a pointer to the camera of the active scene
     sf::View &GetCamera();
