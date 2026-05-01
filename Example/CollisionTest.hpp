@@ -24,7 +24,7 @@ public:
         myCollider->SetSize({48.f, 48.f});
         myCollider->SetOrigin({24.f, 24.f});
         // We can show it for debugging
-        Collider::ToggleDebug(true);
+        Collider::ToggleDebug(false);
     }
 
     // Return the collider so it can be registered by the scene
@@ -55,6 +55,7 @@ public:
         {
             game.sceneManager.GetCollisions(
                 myCollider->GetBoundsOffsetPosition({movement.x * speed * dt, 0}),
+                myCollider,
                 currentCollisions,
                 true);
             if (!currentCollisions.empty())
@@ -64,6 +65,7 @@ public:
         {
             game.sceneManager.GetCollisions(
                 myCollider->GetBoundsOffsetPosition({0, movement.y * speed * dt}),
+                myCollider,
                 currentCollisions,
                 true);
             if (!currentCollisions.empty())
